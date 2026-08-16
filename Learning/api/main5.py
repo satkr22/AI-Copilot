@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Header
 from pydantic import BaseModel
 from typing import Any
 
@@ -27,8 +27,11 @@ def get_current_user(db = Depends(get_db)):
     return db + "and current user extracted"
 
 @app.get("/users")
-def get_users(user = Depends(get_current_user)):
-    return user
+def get_users(user = Depends(get_current_user), header_text = Header()):
+    return {
+        "user": user,
+        "header": header_text
+    }
 
 @app.get("/orders")
 def get_orders(pagenation = Depends(get_pagination)):
