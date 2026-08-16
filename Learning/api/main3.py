@@ -3,17 +3,20 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
-# request body model
+# request body model for products
 class Product(BaseModel):
     title: str
     price: float
     stock: int
 
-# response model
-class UserResponse(BaseModel):
-    id: int
+# request body model for users
+class User(BaseModel):
     name: str
     age: int
+
+# response model
+class UserResponse(BaseModel):
+    name: str
 
 @app.get("/")
 def root():
@@ -24,7 +27,7 @@ def create_product(product: Product):
     return product
 
 
-@app.get("/users", response_model=UserResponse)
+@app.get("/users_id", response_model=UserResponse)
 def get_users_id():
     return {
         "id": 1,
@@ -52,3 +55,10 @@ def get_users_list():
             
     ]
     
+
+@app.post("/users", response_model=UserResponse)
+def get_users(user: User):
+    return {
+        "name": user.name,
+        "age": user.age
+    }
