@@ -1,5 +1,5 @@
-from fastapi import FastAPI, Path, Query, Depends
-from pydantic import BaseModel, model_validator, field_validator
+from fastapi import FastAPI, Depends
+from pydantic import BaseModel
 from typing import Any
 
 app = FastAPI()
