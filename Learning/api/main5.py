@@ -21,3 +21,16 @@ def get_current_user(db = Depends(get_db)):
 def get_users(user = Depends(get_current_user)):
     return user
 
+@app.get("/orders")
+def get_orders(user = Depends(get_current_user), limit: int = 10):
+    return {
+        "orders": limit,
+        "user": user
+    }
+
+@app.get("/products")
+def get_products(user = Depends(get_current_user), limit: int = 10):
+    return {
+        "limit": limit,
+        "user": user
+    }
