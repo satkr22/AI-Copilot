@@ -26,7 +26,6 @@ def root():
 def create_product(product: Product):
     return product
 
-
 @app.get("/users_id", response_model=UserResponse)
 def get_users_id():
     return {
@@ -35,7 +34,6 @@ def get_users_id():
         "age": 23,
         "password": "12345@"
     }
-    
     
 @app.get("/users_list", response_model=list[UserResponse])
 def get_users_list():
@@ -54,9 +52,8 @@ def get_users_list():
         }
             
     ]
-    
 
-@app.post("/users", response_model=UserResponse)
+@app.post("/users", response_model=UserResponse, status_code=201)
 def get_users(user: User):
     return {
         "name": user.name,
