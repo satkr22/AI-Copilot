@@ -1,6 +1,6 @@
 from typing import Any
 from fastapi import FastAPI, HTTPException, Path, Query
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 app = FastAPI()
 
@@ -8,16 +8,17 @@ app = FastAPI()
 class CreateUser(BaseModel):
     username: str = Field(min_length=3, max_length=15, pattern=r"^[a-zA-Z0-9_]+$")
     password: str = Field(min_length=7, max_length=30)
+    confirm_password: str = Field(min_length=7, max_length=30)
     age: int = Field(ge=18)
     
     @field_validator("username")
     @classmethod
-    def validate_userame(cls, value: str):
+    def validate_username(cls, value: str):
         if " " in value:
             raise ValueError("Username cannot contain space")
         return value
     
-    @field_validator("password")
+    @field_validator("password", "confirm_password")
     @classmethod
     def validate_password(cls, value: str):
         if not any(char.isupper() for char in value):
@@ -26,9 +27,18 @@ class CreateUser(BaseModel):
         if not any(char.isdigit() for char in value):
             raise ValueError("Password should has atleast one number")
         
-        if not any(char in value for char in ["@", "#", "$", "&", "_"]):
+        if not any(char in ["@", "#", "$", "&", "_"] for char in value):
             raise ValueError("Password should has atleast one special character")
+        return value
     
+    
+    @model_validator(mode="after")
+    def password_match(self):
+        if self.password != self.confirm_password:
+            raise ValueError("Passowrds didn't match")
+        return self
+        
+        
 # response model
 class UserResponse(BaseModel):
     name: str
@@ -55,6 +65,7 @@ def get_users(user_id: int = Path(ge=1)):
         
     return {
         "id": user_id,
+        "name": "satkr"
     }
     
 @app.post("/create_user", response_model=CreateUserResponse, status_code=201)
