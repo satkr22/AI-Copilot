@@ -1,6 +1,4 @@
 from typing import Any
-from typing_extensions import Self
-
 from fastapi import FastAPI, HTTPException, Path, Query
 from pydantic import BaseModel, Field, field_validator
 
