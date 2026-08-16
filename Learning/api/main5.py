@@ -4,6 +4,15 @@ from typing import Any
 
 app = FastAPI()
 
+def get_pagination(limit: int = 10, offset: int = 0):
+    if limit > 100:
+        limit = 100
+
+    return {
+        "limit": limit,
+        "offset": offset
+    }
+
 @app.get("/")
 def root():
     return {
@@ -22,15 +31,9 @@ def get_users(user = Depends(get_current_user)):
     return user
 
 @app.get("/orders")
-def get_orders(user = Depends(get_current_user), limit: int = 10):
-    return {
-        "orders": limit,
-        "user": user
-    }
+def get_orders(pagenation = Depends(get_pagination)):
+    return pagenation
 
 @app.get("/products")
-def get_products(user = Depends(get_current_user), limit: int = 10):
-    return {
-        "limit": limit,
-        "user": user
-    }
+def get_products(pagenation = Depends(get_pagination)):
+    return pagenation
