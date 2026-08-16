@@ -11,6 +11,7 @@ class Product(BaseModel):
 
 # response model
 class UserResponse(BaseModel):
+    id: int
     name: str
     age: int
 
@@ -24,9 +25,30 @@ def create_product(product: Product):
 
 
 @app.get("/users", response_model=UserResponse)
-def get_users():
+def get_users_id():
     return {
+        "id": 1,
         "name": "boss",
         "age": 23,
         "password": "12345@"
     }
+    
+    
+@app.get("/users_list", response_model=list[UserResponse])
+def get_users_list():
+    return [
+        {
+            "id": 2,
+            "name": "boss",
+            "age": 23,
+            "password": "12345@"
+        },
+        {
+            "id": 3,
+            "name": "satkr",
+            "age": 23,
+            "password": "12$45@"
+        }
+            
+    ]
+    
