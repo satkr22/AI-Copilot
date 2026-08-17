@@ -4,6 +4,17 @@ from typing import Any
 
 app = FastAPI()
 
+
+class Pagination:
+    def __init__(
+        self,
+        limit: int = 20,
+        offset: int = 0
+        ):
+        self.limit = limit
+        self.offset = offset
+        
+
 def get_pagination(limit: int = 10, offset: int = 0):
     if limit > 100:
         limit = 100
@@ -44,5 +55,14 @@ def get_orders(pagenation = Depends(get_pagination)):
     return pagenation
 
 @app.get("/products")
-def get_products(pagenation = Depends(get_pagination)):
-    return pagenation
+def get_products(pagenation = Depends(Pagination)):
+    return {
+        "limit": pagenation.limit,
+        "offset": pagenation.offset
+    }
+
+def fake_current_user():
+    return "FAKE USER"
+
+# Dependency override
+app.dependency_overrides[get_current_user] = fake_current_user
