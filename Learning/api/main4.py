@@ -18,7 +18,7 @@ class CreateUser(BaseModel):
             raise ValueError("Username cannot contain space")
         return value
     
-    @field_validator("password", "confirm_password")
+    @field_validator("password")
     @classmethod
     def validate_password(cls, value: str):
         if not any(char.isupper() for char in value):
