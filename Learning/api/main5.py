@@ -20,11 +20,17 @@ def root():
     }
     
 def get_db():
-    return "Database connection established"
+    print("1. resourse created")
+    try:
+        yield "Database connection established"
+    finally:
+        print("3. resource destroyed")
 
 @app.get("/current_user")
 def get_current_user(db = Depends(get_db)):
-    return db + "and current user extracted"
+    print("2. endpoint executed")
+    raise ValueError("Just an error for testing")
+    # return db + "and current user extracted"
 
 @app.get("/users")
 def get_users(user = Depends(get_current_user), header_text = Header()):
