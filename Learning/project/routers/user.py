@@ -1,19 +1,66 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
+import jwt
+from dotenv import load_dotenv
+import os
+
+# Load environment variables
+load_dotenv()
+
+secret_key = os.getenv('SECRET_KEY', "default")
+if secret_key == 'default':
+    raise ValueError("SECRET_KEY environment variable is not set")
+
+algo = os.getenv('ALGORITHM', 'default')
+if algo == 'default':
+    raise ValueError("ALGORITHM environment variable is not set")
 
 def verify_token():
     print("token verified")
-
+    
 router = APIRouter(
     prefix="/users",
     tags=["Users"],
     dependencies=[Depends(verify_token)]
 )
 
-@router.get("")
-def get_users():
-    return {
-        "message": "all users"
-    }
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
+def get_current_user(
+    token: str = Depends(oauth2_scheme)
+):
+    try:
+        payload = jwt.decode(
+            jwt=token,
+            key=secret_key,
+            algorithms=[algo]
+        )
+        
+        username = payload.get("sub")
+        if username is None:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid authentication credentials"
+            )
+        
+        return {
+                "username": username
+            }
+        
+    except jwt.InvalidTokenError as e:
+        raise HTTPException(
+            status_code=401,
+            detail=f"Invalid authentication credentials:\n{e}"
+        )
+    
+    
+
+
+@router.get("/me")
+def get_me(
+    current_user: dict = Depends(get_current_user)
+):
+    return current_user
 
 @router.get("/{user_id}")
 def get_users_by_id(user_id: int):
