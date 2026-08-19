@@ -171,10 +171,27 @@ def refresh(refresh_token: RefreshTokenRequest):
                 detail="Session revoked"
             )
         
+        # revoke old refresh token
+        session["revoked"] = True
+        
+        # Create new access token
         new_access_token = create_access_token(username=username)
+        
+        # Create new refresh token
+        new_refresh_token, new_refresh_jti = create_refresh_token(username=username) 
+        
+        # store new refresh token's session
+        sessions.append({
+            "username": username,
+            "refresh_token_jti": new_refresh_jti,
+            "revoked": False
+        })
+        
+        print(sessions)
         
         return {
             "access_token": new_access_token,
+            "refresh_token": new_refresh_token,
             "token_type": "bearer"
         }
     
