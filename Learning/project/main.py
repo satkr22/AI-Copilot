@@ -1,9 +1,4 @@
-import os
-import jwt
-from dotenv import load_dotenv
-from datetime import datetime, timedelta, timezone
-from fastapi import FastAPI, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi import FastAPI
 from routers.user import router as user_router
 from routers.product import router as product_router
 from routers.auth import router as auth_router
