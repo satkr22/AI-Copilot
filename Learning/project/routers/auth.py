@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
 from schemas import UserCreate
 from utils.password import hash_password, verify_password
+from services.user_service import add_user, get_user
 
 router = APIRouter(
     prefix="/auth",
@@ -24,14 +25,7 @@ if algo == 'default':
 
 
 
-fake_user_db = []
 
-def get_user(username: str):
-    for user in fake_user_db:
-        if user["username"] == username:
-            return user
-
-    return None
 
 def create_access_token(username: str):
     expires = datetime.now(timezone.utc) + timedelta(minutes=30)
@@ -56,10 +50,11 @@ def register(user: UserCreate):
     
     new_user = {
         "username": user.username,
-        "password_hash": hashed_password
+        "password_hash": hashed_password,
+        "role": "user"
     }
     
-    fake_user_db.append(new_user)
+    add_user(new_user=new_user)
     
     return {
         "message": "User registered successfully!!"

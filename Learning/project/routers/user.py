@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
+import os
 import jwt
 from dotenv import load_dotenv
-import os
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from services.user_service import get_user
 
 router = APIRouter(
     prefix="/users",
@@ -39,10 +40,10 @@ def get_current_user(
                 status_code=401,
                 detail="Invalid authentication credentials"
             )
+            
+        current_user = get_user(username=username)
         
-        return {
-                "username": username
-            }
+        return current_user
         
     except jwt.InvalidTokenError as e:
         raise HTTPException(
@@ -50,7 +51,17 @@ def get_current_user(
             detail=f"Invalid authentication credentials:{e}"
         )
     
-    
+
+def get_current_admin(
+    current_user: dict = Depends(get_current_user)
+):
+    if current_user["role"] != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions"
+        )
+    return current_user
+
 
 
 @router.get("/me")
@@ -72,7 +83,11 @@ def create_users():
     }
     
 @router.delete("/{user_id}")
-def delete_users(user_id: int):
+def delete_users(
+    user_id: int,
+    current_user: dict = Depends(get_current_admin)
+):
     return {
-        "user deleted": user_id
+        "message": f"User {user_id} deleted",
+        "performed_by": current_user["username"]
     }
