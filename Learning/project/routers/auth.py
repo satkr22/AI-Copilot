@@ -30,11 +30,11 @@ if algo == 'default':
 
 
 def create_access_token(username: str):
-    expires = datetime.now(timezone.utc) + timedelta(minutes=30)
+    expires = datetime.now(timezone.utc) + timedelta(seconds=20)
     
     payload = {
         "sub": username,
-        "type": "access",
+        "tye": "access",
         "exp": expires,
         "jti": str(uuid4())
     }
@@ -48,14 +48,15 @@ def create_access_token(username: str):
     return token
 
 
-def create_refresh_token(username: str):
-    expires = datetime.now(timezone.utc) + timedelta(days=7)
+def create_refresh_token(username: str, session_id: str):
+    expires = datetime.now(timezone.utc) + timedelta(minutes=1)
     
     jti = str(uuid4())
     
     payload = {
+        "sid": session_id,
         "sub": username,
-        "type": "refresh",
+        "tye": "refresh",
         "exp": expires,
         "jti": jti
     }
@@ -106,13 +107,16 @@ def login(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid Credentials"
         )
-        
+    
+    session_id = str(uuid4())
+    
     access_token = create_access_token(form_data.username)
-    refresh_token, refresh_jti = create_refresh_token(form_data.username)
+    refresh_token, refresh_jti = create_refresh_token(form_data.username, session_id=session_id)
     
     sessions.append({
+        "session_id": session_id,
         "username": form_data.username,
-        "refresh_token_jti": refresh_jti,
+        "current_refresh_token_jti": refresh_jti,
         "revoked": False
     })
     print(sessions)
@@ -132,7 +136,7 @@ def refresh(refresh_token: RefreshTokenRequest):
             algorithms=[algo]
         )
         
-        if payload.get("type") != "refresh":
+        if payload.get("tye") != "refresh":
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid credentials"
@@ -140,7 +144,9 @@ def refresh(refresh_token: RefreshTokenRequest):
         
         username = payload.get("sub")
         jti = payload.get("jti")
-        if username is None or jti is None:
+        session_id = payload.get("sid")
+        
+        if username is None or jti is None or session_id is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid credentials"
@@ -152,10 +158,11 @@ def refresh(refresh_token: RefreshTokenRequest):
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid credentials"
             )
-            
+       
+        # find the logical session  
         session = None
         for s in sessions:
-            if s["refresh_token_jti"] == jti:
+            if s["session_id"] == session_id:
                 session = s
                 break
         
@@ -170,22 +177,25 @@ def refresh(refresh_token: RefreshTokenRequest):
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Session revoked"
             )
+            
+        if jti != session["current_refresh_token_jti"]:
+            session["revoked"] = True
+            
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Refresh token reuse detected"
+            )
         
-        # revoke old refresh token
-        session["revoked"] = True
         
+        # legitimate refresh starts
         # Create new access token
         new_access_token = create_access_token(username=username)
         
         # Create new refresh token
-        new_refresh_token, new_refresh_jti = create_refresh_token(username=username) 
+        new_refresh_token, new_refresh_jti = create_refresh_token(username=username, session_id=session_id)
         
-        # store new refresh token's session
-        sessions.append({
-            "username": username,
-            "refresh_token_jti": new_refresh_jti,
-            "revoked": False
-        })
+        # update the same logical session
+        session["current_refresh_token_jti"] = new_refresh_jti
         
         print(sessions)
         
@@ -210,7 +220,7 @@ def logout(refresh_token: RefreshTokenRequest):
             algorithms=[algo]
         )
         
-        if payload.get("type") != "refresh":
+        if payload.get("tye") != "refresh":
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid credentials"

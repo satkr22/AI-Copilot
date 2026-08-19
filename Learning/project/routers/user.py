@@ -34,6 +34,12 @@ def get_current_user(
             algorithms=[algo]
         )
         
+        if payload.get("tye") != "access":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication credentials"
+            )
+            
         username = payload.get("sub")
         if username is None:
             raise HTTPException(
