@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
-from schemas import UserCreate, UserLogin
+from schemas import UserCreate
 from utils.password import hash_password, verify_password
 
 router = APIRouter(
@@ -60,7 +60,6 @@ def register(user: UserCreate):
     }
     
     fake_user_db.append(new_user)
-    print(fake_user_db)
     
     return {
         "message": "User registered successfully!!"
