@@ -115,7 +115,7 @@ def login(
         "refresh_token_jti": refresh_jti,
         "revoked": False
     })
-    
+    sessions[-1]["revoked"] = True
     print(sessions)
     
     return {
@@ -140,7 +140,8 @@ def refresh(refresh_token: RefreshTokenRequest):
             )
         
         username = payload.get("sub")
-        if username is None:
+        jti = payload.get("jti")
+        if username is None or jti is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid credentials"
@@ -151,6 +152,24 @@ def refresh(refresh_token: RefreshTokenRequest):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid credentials"
+            )
+            
+        session = None
+        for s in sessions:
+            if s["refresh_token_jti"] == jti:
+                session = s
+                break
+        
+        if session is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid session"
+            )
+        
+        if session["revoked"]:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Session revoked"
             )
         
         new_access_token = create_access_token(username=username)
