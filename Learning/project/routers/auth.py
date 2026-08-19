@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
-from schemas import UserCreate
+from utils.schemas import UserCreate
 from utils.password import hash_password, verify_password
 from services.user_service import add_user, get_user
 
