@@ -30,7 +30,7 @@ if algo == 'default':
 
 
 def create_access_token(username: str):
-    expires = datetime.now(timezone.utc) + timedelta(seconds=20)
+    expires = datetime.now(timezone.utc) + timedelta(seconds=30)
     
     payload = {
         "sub": username,
@@ -49,7 +49,7 @@ def create_access_token(username: str):
 
 
 def create_refresh_token(username: str, session_id: str):
-    expires = datetime.now(timezone.utc) + timedelta(minutes=1)
+    expires = datetime.now(timezone.utc) + timedelta(minutes=5)
     
     jti = str(uuid4())
     
