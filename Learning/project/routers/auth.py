@@ -1,12 +1,14 @@
 import os
 import jwt
+from uuid import uuid4
 from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
-from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
-from utils.schemas import UserCreate
+from utils.schemas import UserCreate, RefreshTokenRequest
 from utils.password import hash_password, verify_password
-from services.user_service import add_user, get_user
+from fastapi import APIRouter, HTTPException, Depends, status
+from services.user_service import add_user, get_user, sessions
+
 
 router = APIRouter(
     prefix="/auth",
@@ -32,7 +34,9 @@ def create_access_token(username: str):
     
     payload = {
         "sub": username,
-        "exp": expires
+        "type": "access",
+        "exp": expires,
+        "jti": str(uuid4())
     }
     
     token = jwt.encode(
@@ -42,6 +46,27 @@ def create_access_token(username: str):
     )
     
     return token
+
+
+def create_refresh_token(username: str):
+    expires = datetime.now(timezone.utc) + timedelta(days=7)
+    
+    jti = str(uuid4())
+    
+    payload = {
+        "sub": username,
+        "type": "refresh",
+        "exp": expires,
+        "jti": jti
+    }
+    
+    token = jwt.encode(
+        payload=payload,
+        key=secret_key,
+        algorithm=algo
+    )
+    
+    return token, jti
 
 
 @router.post("/register")
@@ -82,10 +107,61 @@ def login(
             detail="Invalid Credentials"
         )
         
-    token = create_access_token(form_data.username)
+    access_token = create_access_token(form_data.username)
+    refresh_token, refresh_jti = create_refresh_token(form_data.username)
+    
+    sessions.append({
+        "username": form_data.username,
+        "refresh_token_jti": refresh_jti,
+        "revoked": False
+    })
+    
+    print(sessions)
     
     return {
-        "access_token": token,
+        "access_token": access_token,
+        "refresh_token": refresh_token,
         "token_type": "bearer"
     }
         
+@router.post("/refresh")
+def refresh(refresh_token: RefreshTokenRequest):
+    try:
+        payload = jwt.decode(
+            jwt=refresh_token.refresh_token,
+            key=secret_key,
+            algorithms=[algo]
+        )
+        
+        if payload.get("type") != "refresh":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid credentials"
+            )
+        
+        username = payload.get("sub")
+        if username is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid credentials"
+            )
+        
+        user = get_user(username)
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid credentials"
+            )
+        
+        new_access_token = create_access_token(username=username)
+        
+        return {
+            "access_token": new_access_token,
+            "token_type": "bearer"
+        }
+    
+    except jwt.InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials"
+        )
