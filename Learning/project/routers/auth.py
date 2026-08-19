@@ -226,8 +226,14 @@ def logout(refresh_token: RefreshTokenRequest):
         
         for session in sessions:
             if session["refresh_token_jti"] == jti:
+                if session["revoked"]:
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="Session already revoked"
+                    )
+                
                 session["revoked"] = True
-                print(session)
+                    
                 return {
                     "message": "Logged out successfully"
                 }
