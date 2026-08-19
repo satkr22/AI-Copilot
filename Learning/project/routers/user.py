@@ -50,7 +50,7 @@ def get_current_user(
     except jwt.InvalidTokenError as e:
         raise HTTPException(
             status_code=401,
-            detail=f"Invalid authentication credentials:\n{e}"
+            detail=f"Invalid authentication credentials:{e}"
         )
     
     
