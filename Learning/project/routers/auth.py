@@ -115,7 +115,6 @@ def login(
         "refresh_token_jti": refresh_jti,
         "revoked": False
     })
-    sessions[-1]["revoked"] = True
     print(sessions)
     
     return {
@@ -179,6 +178,48 @@ def refresh(refresh_token: RefreshTokenRequest):
             "token_type": "bearer"
         }
     
+    except jwt.InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials"
+        )
+        
+@router.post("/logout")
+def logout(refresh_token: RefreshTokenRequest):
+    try:
+        payload = jwt.decode(
+            jwt=refresh_token.refresh_token,
+            key=secret_key,
+            algorithms=[algo]
+        )
+        
+        if payload.get("type") != "refresh":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid credentials"
+            )
+        
+        jti = payload.get("jti")
+
+        if jti is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid credentials"
+            )
+        
+        for session in sessions:
+            if session["refresh_token_jti"] == jti:
+                session["revoked"] = True
+                print(session)
+                return {
+                    "message": "Logged out successfully"
+                }
+        
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session not found"
+        )
+        
     except jwt.InvalidTokenError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
