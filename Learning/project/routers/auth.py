@@ -2,7 +2,7 @@ import os
 import jwt
 from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
 from schemas import UserCreate, UserLogin
 from utils.password import hash_password, verify_password
@@ -75,7 +75,7 @@ def login(
     
     if stored_user is None:
         raise HTTPException(
-            status_code=401,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid Credentials"
         )
     
@@ -84,7 +84,7 @@ def login(
         hashed_password=stored_user["password_hash"]
     ):
         raise HTTPException(
-            status_code=401,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid Credentials"
         )
         

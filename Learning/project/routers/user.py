@@ -4,6 +4,11 @@ import jwt
 from dotenv import load_dotenv
 import os
 
+router = APIRouter(
+    prefix="/users",
+    tags=["Users"]
+)
+
 # Load environment variables
 load_dotenv()
 
@@ -14,15 +19,7 @@ if secret_key == 'default':
 algo = os.getenv('ALGORITHM', 'default')
 if algo == 'default':
     raise ValueError("ALGORITHM environment variable is not set")
-
-def verify_token():
-    print("token verified")
     
-router = APIRouter(
-    prefix="/users",
-    tags=["Users"],
-    dependencies=[Depends(verify_token)]
-)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
