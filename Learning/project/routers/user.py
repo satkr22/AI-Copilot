@@ -42,13 +42,18 @@ def get_current_user(
             )
             
         current_user = get_user(username=username)
+        if current_user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication credentials"
+            )
         
         return current_user
-        
-    except jwt.InvalidTokenError as e:
+            
+    except jwt.InvalidTokenError:
         raise HTTPException(
             status_code=401,
-            detail=f"Invalid authentication credentials:{e}"
+            detail=f"Invalid authentication credentials"
         )
     
 
@@ -74,12 +79,6 @@ def get_me(
 def get_users_by_id(user_id: int):
     return {
         "id": user_id
-    }
-    
-@router.post("")
-def create_users():
-    return {
-        "message": "User Created"
     }
     
 @router.delete("/{user_id}")
