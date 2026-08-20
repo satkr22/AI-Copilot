@@ -1,1 +1,8 @@
 .env
+.agents
+.codex
+.vscode
+.gitignore
+Git_Cheat_Sheet.md
+docs/
+Learning/
