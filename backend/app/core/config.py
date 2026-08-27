@@ -1,29 +1,35 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     # Application
     APP_NAME: str = "FastAPI_App"
     ENVIRONMENT: str = "development"
     
-    # Database
-    DATABASE_URL_v1: str
-    
     # API keys
     OPENAI_API_KEY: str
+    
+    # Database
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
+    POSTGRES_DB: str
+    DATABASE_URL: str
+    
     # Qdrant
     QDRANT_URL: str 
+    QDRANT__SERVICE__API_KEY: str
     
     # debug settings
     @property
     def DEBUG(self) -> bool:
         return self.ENVIRONMENT == "development"
     
-    # this is not needed for the docker implementation as docker will inject env variables to containers' enviornment and pydantic will read from the environment too
+    # docker will inject env variables to container's enviornment and pydantic will read from the container's environment too
     
-    # class Config:
-    #     env_file = ".env"
-    #     env_file_encoding = "utf-8"
-    #     case_sensitive = True
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        extra="ignore"
+    )
+
 
 # Create a global settings instance
 settings = Settings() #type: ignore
