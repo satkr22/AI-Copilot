@@ -6,20 +6,24 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     
     # Database
-    DATABASE_URL_v1: str = "postgresql://user:password@localhost:5432/dbname"
+    DATABASE_URL_v1: str
     
     # API keys
-    OPENAI_API_KEY: str = ""
+    OPENAI_API_KEY: str
     # Qdrant
-    QDRANT_URL: str = "http://localhost:6333"
+    QDRANT_URL: str 
     
     # debug settings
-    DEBUG: bool = ENVIRONMENT == "development"
+    @property
+    def DEBUG(self) -> bool:
+        return self.ENVIRONMENT == "development"
     
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = True
+    # this is not needed for the docker implementation as docker will inject env variables to containers' enviornment and pydantic will read from the environment too
+    
+    # class Config:
+    #     env_file = ".env"
+    #     env_file_encoding = "utf-8"
+    #     case_sensitive = True
 
 # Create a global settings instance
-settings = Settings()
+settings = Settings() #type: ignore
