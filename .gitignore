@@ -6,3 +6,5 @@ Git_Cheat_Sheet.md
 docs/
 Learning/
 zz.txt
+*.pyc
+__pycache__

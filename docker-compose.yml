@@ -1,0 +1,53 @@
+version: '1.0'
+
+services:
+  backend:
+    build: ./backend
+    container_name: fastapi_backend
+    env_file:
+      - .env
+    ports:
+      - "9000:9000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    volumes: # need to understand this 
+      - ./backend:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 9000 --reload
+
+  frontend:
+    build: ./frontend
+    container_name: react_frontend
+    env_file:
+      - .env
+    depends_on:
+      - backend
+    volumes:
+      - .frontend:/app
+      - /app/node_modules
+    command: npm run dev
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres_db
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CDM-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+  
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant_db
+    env_file:
+      - .env
+    volumes:
+      - qdrant_data:/qdrant/storage
+    
