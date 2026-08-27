@@ -15,10 +15,10 @@ RUN apt-get update && \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY source dest
+COPY . .
 
 # if we are using entrypoint script for intial services start
 RUN chmod +x entrypoint.sh
 ENTRYPOINT ["./entrypoint.sh"]
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port","9000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port","9000", "--reload"]
