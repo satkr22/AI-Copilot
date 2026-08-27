@@ -1,3 +1,6 @@
 fastapi
 sqlalchemy
 psycopg
+uvicorn
+pydantic
+pydantic_settings
