@@ -1,4 +1,4 @@
-version: '1.0.0'
+version: 'v1'
 
 services:
   backend:
@@ -23,7 +23,7 @@ services:
     ports:
       - "5173:5173"
     environment:
-      - VITE_API_URL=${http://localhost:9000}
+      - VITE_API_URL=${VITE_API_URL}
     depends_on:
       - backend
     volumes:
@@ -52,4 +52,8 @@ services:
       - .env
     volumes:
       - qdrant_data:/qdrant/storage
+  
+volumes:
+  postgres_data:
+  qdrant_data:
     
