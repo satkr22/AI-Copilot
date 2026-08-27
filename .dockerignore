@@ -1,8 +1,13 @@
 .env
 *.pyc
-__pycache__/
-.pytest_cache/
+__pycache__
+.pytest_cache
 .git
 .agents
 .codex
 .vscode
+node_modules
+dist
+Dockerfile
+README.md
+.gitignore

@@ -3,8 +3,9 @@
 .codex
 .vscode
 Git_Cheat_Sheet.md
-docs/
-Learning/
+docs
+Learning
 zz.txt
 *.pyc
 __pycache__
+node_modules
