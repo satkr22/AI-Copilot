@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     QDRANT_URL: str 
     QDRANT__SERVICE__API_KEY: str
     
+    # frontend
+    VITE_FRONTEND_API_URL: str
+    
     # debug settings
     @property
     def DEBUG(self) -> bool:
