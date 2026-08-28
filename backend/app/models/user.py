@@ -3,9 +3,7 @@ from uuid import uuid4
 
 from sqlalchemy import String, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
 from app.db.base import Base
-
 
 class User(Base):
     __tablename__ = "users"
@@ -34,12 +32,14 @@ class User(Base):
     )
 
     # Relationships
-    projects: Mapped[list["Project"]] = relationship( # type: ignore
+    projects: Mapped[list["Project"]] = relationship(
         "Project",
-        back_populates="user"
+        back_populates="user",
+        cascade="all, delete-orphan"
     )
 
-    repositories: Mapped[list["Repository"]] = relationship( # type: ignore
+    repositories: Mapped[list["Repository"]] = relationship(
         "Repository",
-        back_populates="user"
+        back_populates="user",
+        cascade="all, delete-orphan"
     )

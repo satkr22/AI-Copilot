@@ -10,7 +10,6 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
-
 class SourceType(str, Enum):
     ZIP = "zip"
     GITHUB = "github"
@@ -68,12 +67,12 @@ class Repository(Base):
     )
 
     # Relationships
-    projects: Mapped[list["Project"]] = relationship( # type: ignore
+    projects: Mapped[list["Project"]] = relationship(
         "Project",
         back_populates="source"
     )
-    
-    user: Mapped["User"] = relationship( # type: ignore
+
+    user: Mapped["User"] = relationship(
         "User",
         back_populates="repositories"
     )
