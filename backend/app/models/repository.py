@@ -25,6 +25,12 @@ class Repository(Base):
         primary_key=True,
         default=lambda: str(uuid4())
     )
+    
+    # FK
+    user_id: Mapped[str] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False
+    )
 
     source_type: Mapped[SourceType] = mapped_column(
         SQLEnum(SourceType, name="source_type"),
@@ -61,9 +67,13 @@ class Repository(Base):
         nullable=True
     )
 
-    # Relationship to projects table
-    project: Mapped[list["Project"]] = relationship( # type: ignore
+    # Relationships
+    projects: Mapped[list["Project"]] = relationship( # type: ignore
         "Project",
         back_populates="source"
     )
     
+    user: Mapped["User"] = relationship( # type: ignore
+        "User",
+        back_populates="repositories"
+    )

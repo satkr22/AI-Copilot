@@ -31,10 +31,15 @@ class Project(Base):
         nullable=False
     )
     
-    # FK -> repositories.id
-    repository_id: Mapped[str] = mapped_column(
-        ForeignKey("repositories.id", ondelete="RESTRICT"),
+    # FK
+    user_id: Mapped[str] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False
+    )
+    
+    repository_id: Mapped[str | None] = mapped_column(
+        ForeignKey("repositories.id", ondelete="RESTRICT"),
+        nullable=True        # Project is created first
     )
     
     description: Mapped[str | None] = mapped_column(
@@ -58,8 +63,13 @@ class Project(Base):
         nullable=False
     )
     
-    # Relationship to repositories table
+    # Relationships
     source: Mapped["Repository"] = relationship( # type: ignore
         "Repository",
-        back_populates="project"
+        back_populates="projects"
+    )
+    
+    user: Mapped["User"] = relationship( # type: ignore
+        "User",
+        back_populates="projects"
     )

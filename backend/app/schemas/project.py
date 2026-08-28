@@ -8,7 +8,7 @@ from uuid import UUID
 class ProjectCreate(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     description: str | None = Field(default=None, max_length=300)
-    repository_id: UUID
+    repository_id: str | None = None
 
 
 # ---------- Update ----------
@@ -25,7 +25,7 @@ class ProjectResponse(BaseModel):
     id: str
     name: str
     description: str | None
-    repository_id: str
+    repository_id: str | None
     status: ProjectStatus
     created_at: datetime
     updated_at: datetime

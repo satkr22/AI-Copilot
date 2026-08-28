@@ -14,6 +14,7 @@ class RepositoryCreate(BaseModel):
     def validate_github(self):
         if self.source_type == SourceType.GITHUB and self.source_url is None:
             raise ValueError("Source url is required for GitHub repositories")
+        
         return self
 
 
