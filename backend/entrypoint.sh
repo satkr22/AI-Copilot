@@ -13,6 +13,9 @@ done
 
 echo "PostgreSQL is ready"
 
+echo "Creating tables..."
+python -m app.db.init_db
+
 echo "Starting FastAPI..."
 
 exec "$@"
