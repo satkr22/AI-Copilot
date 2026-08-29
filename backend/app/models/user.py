@@ -32,13 +32,13 @@ class User(Base):
     )
 
     # Relationships
-    projects: Mapped[list["Project"]] = relationship(
+    projects: Mapped[list["Project"]] = relationship( #type: ignore
         "Project",
         back_populates="user",
         cascade="all, delete-orphan"
     )
 
-    repositories: Mapped[list["Repository"]] = relationship(
+    repositories: Mapped[list["Repository"]] = relationship( #type: ignore
         "Repository",
         back_populates="user",
         cascade="all, delete-orphan"

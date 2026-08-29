@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from app.models.project import ProjectStatus
 from uuid import UUID
 
-# ---------- Request ----------
+# ---------- Requests ----------
 
 class ProjectCreate(BaseModel):
     name: str = Field(min_length=1, max_length=100)
@@ -17,6 +17,10 @@ class ProjectUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=100)
     description: str | None = Field(default=None, max_length=300)
     status: ProjectStatus | None = None
+
+
+class ProjectRepositoryAttach(BaseModel):
+    repository_id: str
 
 
 # ---------- Response ----------

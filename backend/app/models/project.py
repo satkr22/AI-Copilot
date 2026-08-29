@@ -64,12 +64,12 @@ class Project(Base):
     )
     
     # Relationships
-    source: Mapped["Repository"] = relationship(
+    repository: Mapped["Repository"] = relationship( #type: ignore
         "Repository",
         back_populates="projects"
     )
 
-    user: Mapped["User"] = relationship(
+    user: Mapped["User"] = relationship( #type: ignore
         "User",
         back_populates="projects"
     )

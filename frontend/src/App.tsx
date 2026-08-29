@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 
-const API = import.meta.env.VITE_BACKEND_API_URL;
+const API = import.meta.env.VITE_BACKEND_API_URL || "http://localhost:9000";
 
 type User = {
   id: string;
@@ -11,25 +11,61 @@ type User = {
 type Project = {
   id: string;
   name: string;
-  description?: string;
+  description: string | null;
   repository_id: string | null;
   status: string;
+};
+
+type Repository = {
+  id: string;
+  source_type: string;
+  source_url: string | null;
+  local_path: string | null;
+  branch: string | null;
+  commit_hash: string | null;
+  created_at: string;
+  indexed_at: string | null;
 };
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [repositories, setRepositories] = useState<Repository[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState("");
   const [mode, setMode] = useState<"login" | "register">("login");
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-
   const [projectName, setProjectName] = useState("");
   const [description, setDescription] = useState("");
-
+  const [selectedRepositoryId, setSelectedRepositoryId] = useState("");
+  const [githubUrl, setGithubUrl] = useState("");
+  const [branch, setBranch] = useState("main");
   const [message, setMessage] = useState("");
 
-  // ---------- helper ----------
+  const selectedProject = useMemo(
+    () => projects.find((project) => project.id === selectedProjectId) || null,
+    [projects, selectedProjectId]
+  );
+
+  const attachedRepository = useMemo(() => {
+    if (!selectedProject?.repository_id) return null;
+
+    return (
+      repositories.find(
+        (repository) => repository.id === selectedProject.repository_id
+      ) || null
+    );
+  }, [repositories, selectedProject]);
+
+  const availableRepositories = useMemo(() => {
+    if (!selectedProject?.repository_id) return repositories;
+
+    return repositories.filter(
+      (repository) => repository.id !== selectedProject.repository_id
+    );
+  }, [repositories, selectedProject]);
+
   const authFetch = async (url: string, options: RequestInit = {}) => {
     const token = localStorage.getItem("token");
 
@@ -43,7 +79,6 @@ export default function App() {
     });
   };
 
-  // ---------- check existing login ----------
   useEffect(() => {
     const checkLogin = async () => {
       const token = localStorage.getItem("token");
@@ -58,24 +93,32 @@ export default function App() {
 
       const me = await res.json();
       setUser(me);
-
-      loadProjects();
+      await refreshDashboard();
     };
 
     checkLogin();
   }, []);
 
-  // ---------- load projects ----------
+  const refreshDashboard = async () => {
+    await Promise.all([loadProjects(), loadRepositories()]);
+  };
+
   const loadProjects = async () => {
     const res = await authFetch("/projects");
-
     if (!res.ok) return;
 
     const data = await res.json();
     setProjects(data);
   };
 
-  // ---------- register ----------
+  const loadRepositories = async () => {
+    const res = await authFetch("/repositories");
+    if (!res.ok) return;
+
+    const data = await res.json();
+    setRepositories(data);
+  };
+
   const register = async () => {
     const res = await fetch(`${API}/auth/register`, {
       method: "POST",
@@ -93,14 +136,12 @@ export default function App() {
       return;
     }
 
-    setMessage("Registered successfully. Please login.");
     setMode("login");
     setName("");
     setEmail("");
     setMessage("Registered successfully. Please login.");
   };
 
-  // ---------- login ----------
   const login = async () => {
     const res = await fetch(`${API}/auth/login`, {
       method: "POST",
@@ -116,24 +157,26 @@ export default function App() {
     }
 
     const data = await res.json();
-
     localStorage.setItem("token", data.access_token);
-
     setUser(data.user);
-
-    await loadProjects();
+    setMessage("");
+    await refreshDashboard();
   };
 
-  // ---------- logout ----------
   const logout = () => {
     localStorage.removeItem("token");
     setUser(null);
     setProjects([]);
+    setRepositories([]);
+    setSelectedProjectId("");
+    setSelectedRepositoryId("");
     setEmail("");
     setName("");
+    setProjectName("");
+    setDescription("");
+    setMessage("");
   };
 
-  // ---------- create project ----------
   const createProject = async () => {
     const res = await authFetch("/projects", {
       method: "POST",
@@ -151,21 +194,76 @@ export default function App() {
     const newProject: Project = await res.json();
 
     setProjects((prev) => [...prev, newProject]);
-
     setProjectName("");
     setDescription("");
+    setMessage("Project created");
   };
 
-  // ==========================================================
-  // LOGIN / REGISTER PAGE
-  // ==========================================================
+  const importGithubRepository = async () => {
+    if (!selectedProject) {
+      setMessage("Select a project first");
+      return;
+    }
+
+    const res = await authFetch(
+      `/projects/${selectedProject.id}/repository/github`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          source_url: githubUrl,
+          branch,
+        }),
+      }
+    );
+
+    if (!res.ok) {
+      setMessage("Unable to import GitHub repository");
+      return;
+    }
+
+    await refreshDashboard();
+    setGithubUrl("");
+    setBranch("main");
+    setMessage("GitHub repository attached to project");
+  };
+
+  const attachExistingRepository = async () => {
+    if (!selectedProject || !selectedRepositoryId) {
+      setMessage("Select a repository first");
+      return;
+    }
+
+    const res = await authFetch(`/projects/${selectedProject.id}/repository`, {
+      method: "PUT",
+      body: JSON.stringify({
+        repository_id: selectedRepositoryId,
+      }),
+    });
+
+    if (!res.ok) {
+      setMessage("Unable to attach repository");
+      return;
+    }
+
+    await refreshDashboard();
+    setSelectedRepositoryId("");
+    setMessage("Existing repository attached to project");
+  };
+
+  const showMissingApiMessage = (action: string) => {
+    setMessage(`${action} API is not implemented in backend yet.`);
+  };
+
+  const repositoryLabel = (repository: Repository) => {
+    return repository.source_url || repository.local_path || repository.id;
+  };
 
   if (!user) {
     return (
       <main style={styles.container}>
         <h1>AI Copilot</h1>
 
-        <div style={styles.card}>
+        <section style={styles.card}>
           <div style={styles.tabs}>
             <button
               onClick={() => setMode("login")}
@@ -208,15 +306,97 @@ export default function App() {
             </button>
           )}
 
-          <p>{message}</p>
-        </div>
+          {message && <p>{message}</p>}
+        </section>
       </main>
     );
   }
 
-  // ==========================================================
-  // DASHBOARD
-  // ==========================================================
+  if (selectedProject) {
+    return (
+      <main style={styles.container}>
+        <div style={styles.header}>
+          <div>
+            <button onClick={() => setSelectedProjectId("")}>Back</button>
+            <h2>{selectedProject.name}</h2>
+            <p>{selectedProject.description || "No description"}</p>
+            <small>Status: {selectedProject.status}</small>
+          </div>
+
+          <button onClick={logout}>Logout</button>
+        </div>
+
+        <section style={styles.card}>
+          <h3>Repository</h3>
+
+          {attachedRepository ? (
+            <div>
+              <strong>{repositoryLabel(attachedRepository)}</strong>
+              <p>Branch: {attachedRepository.branch || "none"}</p>
+              <p>Indexed: {attachedRepository.indexed_at || "not indexed"}</p>
+
+              <button
+                onClick={() => showMissingApiMessage("Detach repository")}
+                style={styles.danger}
+              >
+                Delete Repository From This Project
+              </button>
+            </div>
+          ) : (
+            <div>
+              <input
+                placeholder="GitHub repository URL"
+                value={githubUrl}
+                onChange={(e) => setGithubUrl(e.target.value)}
+                style={styles.input}
+              />
+
+              <input
+                placeholder="Branch"
+                value={branch}
+                onChange={(e) => setBranch(e.target.value)}
+                style={styles.input}
+              />
+
+              <button onClick={importGithubRepository} style={styles.primary}>
+                Add Repository From GitHub
+              </button>
+
+              <select
+                value={selectedRepositoryId}
+                onChange={(e) => setSelectedRepositoryId(e.target.value)}
+                style={styles.input}
+              >
+                <option value="">Select existing repository</option>
+                {availableRepositories.map((repository) => (
+                  <option key={repository.id} value={repository.id}>
+                    {repositoryLabel(repository)}
+                  </option>
+                ))}
+              </select>
+
+              <button onClick={attachExistingRepository} style={styles.primary}>
+                Attach Existing Repository
+              </button>
+            </div>
+          )}
+        </section>
+
+        <section style={styles.card}>
+          <h3>Project Actions</h3>
+
+          <button
+            onClick={() => showMissingApiMessage("Delete project")}
+            style={styles.danger}
+          >
+            Delete Project
+          </button>
+        </section>
+
+        {message && <p>{message}</p>}
+      </main>
+    );
+  }
 
   return (
     <main style={styles.container}>
@@ -229,7 +409,7 @@ export default function App() {
         <button onClick={logout}>Logout</button>
       </div>
 
-      <div style={styles.card}>
+      <section style={styles.card}>
         <h3>Create Project</h3>
 
         <input
@@ -249,30 +429,39 @@ export default function App() {
         <button onClick={createProject} style={styles.primary}>
           Create
         </button>
-      </div>
+      </section>
 
-      <div style={styles.card}>
+      <section style={styles.card}>
         <h3>My Projects</h3>
 
         {projects.length === 0 ? (
           <p>No projects yet.</p>
         ) : (
-          projects.map((p) => (
-            <div key={p.id} style={styles.project}>
-              <strong>{p.name}</strong>
-              <p>{p.description}</p>
-              <small>{p.status}</small>
-            </div>
+          projects.map((project) => (
+            <button
+              key={project.id}
+              onClick={() => setSelectedProjectId(project.id)}
+              style={styles.projectButton}
+            >
+              <strong>{project.name}</strong>
+              <span>{project.description || "No description"}</span>
+              <small>
+                {project.status} | repository:{" "}
+                {project.repository_id || "not attached"}
+              </small>
+            </button>
           ))
         )}
-      </div>
+      </section>
+
+      {message && <p>{message}</p>}
     </main>
   );
 }
 
-const styles: Record<string, React.CSSProperties> = {
+const styles: Record<string, CSSProperties> = {
   container: {
-    maxWidth: 700,
+    maxWidth: 760,
     margin: "40px auto",
     fontFamily: "Arial",
   },
@@ -280,7 +469,7 @@ const styles: Record<string, React.CSSProperties> = {
   card: {
     border: "1px solid #ddd",
     padding: 20,
-    borderRadius: 10,
+    borderRadius: 8,
     marginTop: 20,
   },
 
@@ -296,6 +485,16 @@ const styles: Record<string, React.CSSProperties> = {
     width: "100%",
     padding: 10,
     cursor: "pointer",
+  },
+
+  danger: {
+    marginTop: 15,
+    width: "100%",
+    padding: 10,
+    cursor: "pointer",
+    border: "1px solid #b00020",
+    color: "#b00020",
+    background: "white",
   },
 
   tabs: {
@@ -319,11 +518,26 @@ const styles: Record<string, React.CSSProperties> = {
   header: {
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-start",
+    gap: 20,
   },
 
   project: {
     borderTop: "1px solid #eee",
     padding: "10px 0",
+  },
+
+  projectButton: {
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-start",
+    gap: 6,
+    border: 0,
+    borderTop: "1px solid #eee",
+    background: "#4f4f4f",
+    padding: "12px 0",
+    cursor: "pointer",
+    textAlign: "left",
   },
 };

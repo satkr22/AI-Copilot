@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from app.models.project import Project
 from app.schemas.project import ProjectCreate, ProjectStatus
@@ -36,3 +37,13 @@ class ProjectService:
         self.db.refresh(project)
         
         return project
+    
+    def fetch_project(
+        self,
+        user_id: str,
+        project_id: str
+    ) -> Project | None:
+
+        return self.db.query(Project).filter(
+                        Project.user_id == user_id,
+                        Project.id == project_id).one_or_none()

@@ -18,6 +18,11 @@ class RepositoryCreate(BaseModel):
         return self
 
 
+class GithubRepositoryCreate(BaseModel):
+    source_url: HttpUrl
+    branch: str | None = Field(default="main", max_length=100)
+
+
 # ---------- Response ----------
 
 class RepositoryResponse(BaseModel):
