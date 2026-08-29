@@ -47,3 +47,29 @@ class ProjectService:
         return self.db.query(Project).filter(
                         Project.user_id == user_id,
                         Project.id == project_id).one_or_none()
+
+    def delete_project(
+        self,
+        user_id: str,
+        project_id: str
+    ) -> str | None:
+        """Delete a project and return its previous repository_id (if any).
+
+        Caller is responsible for orphan-cleanup of the repository row.
+        """
+        project = (
+            self.db.query(Project)
+            .filter(
+                Project.id == project_id,
+                Project.user_id == user_id,
+            )
+            .one_or_none()
+        )
+
+        if project is None:
+            return None
+
+        old_repository_id = project.repository_id
+        self.db.delete(project)
+        self.db.flush()
+        return old_repository_id

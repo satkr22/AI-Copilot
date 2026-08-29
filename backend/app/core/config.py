@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     # Qdrant
     QDRANT_URL: str 
     QDRANT__SERVICE__API_KEY: str
+
+    # Storage
+    REPOSITORY_STORAGE_PATH: str = "storage/repositories"
     
     # frontend
     VITE_FRONTEND_API_URL: str

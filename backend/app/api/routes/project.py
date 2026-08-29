@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, UploadFile, status
 from sqlalchemy.orm import Session
 from app.core.security import get_current_user
 from app.db.session import get_db
@@ -128,3 +128,74 @@ def create_github_repository_for_project(
         project_id=project_id,
         data=payload
     )
+
+
+@router.post(
+    "/{project_id}/repository/zip",
+    response_model=RepositoryResponse,
+    status_code=201
+)
+def upload_zip_repository_for_project(
+    project_id: str,
+    file: UploadFile,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    service = RepositoryService(db=db)
+
+    return service.create_zip_repository_for_project(
+        user_id=current_user.id,
+        project_id=project_id,
+        file=file
+    )
+
+
+@router.delete(
+    "/{project_id}/repository",
+    response_model=ProjectResponse,
+    status_code=200
+)
+def detach_repository_from_project(
+    project_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    service = RepositoryService(db=db)
+
+    return service.detach_repository_from_project(
+        user_id=current_user.id,
+        project_id=project_id
+    )
+
+
+@router.delete(
+    "/{project_id}",
+    status_code=204
+)
+def delete_project(
+    project_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    project_service = ProjectService(db=db)
+    repo_service = RepositoryService(db=db)
+
+    old_repository_id = project_service.delete_project(
+        user_id=current_user.id,
+        project_id=project_id
+    )
+
+    if old_repository_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found"
+        )
+
+    # If the project had a repository, clean it up if orphaned
+    repo_service.cleanup_repository_if_orphan(
+        user_id=current_user.id,
+        repository_id=old_repository_id
+    )
+
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
