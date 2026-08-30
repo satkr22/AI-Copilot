@@ -250,8 +250,95 @@ export default function App() {
     setMessage("Existing repository attached to project");
   };
 
-  const showMissingApiMessage = (action: string) => {
-    setMessage(`${action} API is not implemented in backend yet.`);
+  const detachRepository = async () => {
+    if (!selectedProject) {
+      setMessage("Select a project first");
+      return;
+    }
+
+    if (!confirm("Detach repository from this project? The repository will be deleted if no other project uses it.")) {
+      return;
+    }
+
+    const res = await authFetch(`/projects/${selectedProject.id}/repository`, {
+      method: "DELETE",
+    });
+
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ detail: "Failed to detach repository" }));
+      setMessage(error.detail || "Failed to detach repository");
+      return;
+    }
+
+    await refreshDashboard();
+    setMessage("Repository detached from project");
+  };
+
+  const deleteProject = async () => {
+    if (!selectedProject) {
+      setMessage("Select a project first");
+      return;
+    }
+
+    if (!confirm("Delete this project? The attached repository will be deleted if no other project uses it.")) {
+      return;
+    }
+
+    const res = await authFetch(`/projects/${selectedProject.id}`, {
+      method: "DELETE",
+    });
+
+    if (!res.ok && res.status !== 204) {
+      const error = await res.json().catch(() => ({ detail: "Failed to delete project" }));
+      setMessage(error.detail || "Failed to delete project");
+      return;
+    }
+
+    setSelectedProjectId("");
+    await refreshDashboard();
+    setMessage("Project deleted");
+  };
+
+  const uploadZipRepository = async (file: File) => {
+    if (!selectedProject) {
+      setMessage("Select a project first");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch(`${API}/projects/${selectedProject.id}/repository/zip`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ detail: "Failed to upload zip" }));
+      setMessage(error.detail || "Failed to upload zip");
+      return;
+    }
+
+    await refreshDashboard();
+    setMessage("ZIP repository uploaded and attached to project");
+  };
+
+  const handleZipUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith(".zip")) {
+      setMessage("Please select a .zip file");
+      event.target.value = "";
+      return;
+    }
+
+    await uploadZipRepository(file);
+    event.target.value = "";
   };
 
   const repositoryLabel = (repository: Repository) => {
@@ -336,7 +423,7 @@ export default function App() {
               <p>Indexed: {attachedRepository.indexed_at || "not indexed"}</p>
 
               <button
-                onClick={() => showMissingApiMessage("Detach repository")}
+                onClick={detachRepository}
                 style={styles.danger}
               >
                 Delete Repository From This Project
@@ -378,6 +465,18 @@ export default function App() {
               <button onClick={attachExistingRepository} style={styles.primary}>
                 Attach Existing Repository
               </button>
+
+              <div style={styles.uploadSection}>
+                <label style={styles.uploadLabel}>
+                  <span>Upload ZIP Repository</span>
+                  <input
+                    type="file"
+                    accept=".zip"
+                    onChange={handleZipUpload}
+                    style={styles.fileInput}
+                  />
+                </label>
+              </div>
             </div>
           )}
         </section>
@@ -386,7 +485,7 @@ export default function App() {
           <h3>Project Actions</h3>
 
           <button
-            onClick={() => showMissingApiMessage("Delete project")}
+            onClick={deleteProject}
             style={styles.danger}
           >
             Delete Project
@@ -539,5 +638,20 @@ const styles: Record<string, CSSProperties> = {
     padding: "12px 0",
     cursor: "pointer",
     textAlign: "left",
+  },
+
+  uploadSection: {
+    marginTop: 15,
+  },
+
+  uploadLabel: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+    fontWeight: "bold",
+  },
+
+  fileInput: {
+    padding: 8,
   },
 };
