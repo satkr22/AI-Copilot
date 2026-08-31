@@ -43,9 +43,26 @@ export default function App() {
   const [branch, setBranch] = useState("main");
   const [message, setMessage] = useState("");
 
+  // Projects removed in this session. The server can keep answering /projects
+  // with a just-deleted row, so the UI never renders an id from this list.
+  const [deletedProjectIds, setDeletedProjectIds] = useState<string[]>([]);
+
+  const visibleProjects = useMemo(
+    () => projects.filter((project) => !deletedProjectIds.includes(project.id)),
+    [deletedProjectIds, projects]
+  );
+
+  const forgetProject = (projectId: string) => {
+    setDeletedProjectIds((prev) =>
+      prev.includes(projectId) ? prev : [...prev, projectId]
+    );
+    setProjects((prev) => prev.filter((project) => project.id !== projectId));
+    setSelectedProjectId((prev) => (prev === projectId ? "" : prev));
+  };
+
   const selectedProject = useMemo(
-    () => projects.find((project) => project.id === selectedProjectId) || null,
-    [projects, selectedProjectId]
+    () => visibleProjects.find((project) => project.id === selectedProjectId) || null,
+    [selectedProjectId, visibleProjects]
   );
 
   const attachedRepository = useMemo(() => {
@@ -108,7 +125,7 @@ export default function App() {
     if (!res.ok) return;
 
     const data = await res.json();
-    setProjects(data);
+    setProjects(Array.isArray(data) ? data : []);
   };
 
   const loadRepositories = async () => {
@@ -170,6 +187,7 @@ export default function App() {
     setRepositories([]);
     setSelectedProjectId("");
     setSelectedRepositoryId("");
+    setDeletedProjectIds([]);
     setEmail("");
     setName("");
     setProjectName("");
@@ -288,14 +306,18 @@ export default function App() {
       method: "DELETE",
     });
 
-    if (!res.ok && res.status !== 204) {
+    // 404 also means success: the project is no longer on the server.
+    if (!res.ok && res.status !== 204 && res.status !== 404) {
       const error = await res.json().catch(() => ({ detail: "Failed to delete project" }));
       setMessage(error.detail || "Failed to delete project");
       return;
     }
 
-    setSelectedProjectId("");
+    forgetProject(selectedProject.id);
     await refreshDashboard();
+    setSelectedRepositoryId("");
+    setGithubUrl("");
+    setBranch("main");
     setMessage("Project deleted");
   };
 
@@ -533,10 +555,10 @@ export default function App() {
       <section style={styles.card}>
         <h3>My Projects</h3>
 
-        {projects.length === 0 ? (
+        {visibleProjects.length === 0 ? (
           <p>No projects yet.</p>
         ) : (
-          projects.map((project) => (
+          visibleProjects.map((project) => (
             <button
               key={project.id}
               onClick={() => setSelectedProjectId(project.id)}
