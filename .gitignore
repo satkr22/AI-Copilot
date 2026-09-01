@@ -21,7 +21,7 @@ zz.py
 dist
 dist-ssr
 *.local
-NEXT_DAY_PLAN.md
+docs/NEXT_DAY_PLAN.md
 
 # Editor directories and files
 .vscode/*
