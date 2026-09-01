@@ -76,3 +76,8 @@ class Repository(Base):
         "User",
         back_populates="repositories"
     )
+    
+    branches: Mapped[list["RepositoryBranch"]] = relationship( #type: ignore
+        "RepositoryBranch",
+        back_populates="repo"
+    )

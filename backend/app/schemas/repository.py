@@ -20,7 +20,7 @@ class RepositoryCreate(BaseModel):
 
 class GithubRepositoryCreate(BaseModel):
     source_url: HttpUrl
-    branch: str | None = Field(default="main", max_length=100)
+    branch: str | None
 
 
 # ---------- Response ----------
@@ -30,8 +30,6 @@ class RepositoryResponse(BaseModel):
     source_type: SourceType
     source_url: str | None
     local_path: str | None
-    branch: str | None
-    commit_hash: str | None
     created_at: datetime
     indexed_at: datetime | None
 

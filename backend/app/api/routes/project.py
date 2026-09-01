@@ -123,11 +123,20 @@ def create_github_repository_for_project(
 ):
     service = RepositoryService(db=db)
 
-    return service.create_github_repository_for_project(
-        user_id=current_user.id,
-        project_id=project_id,
-        data=payload
-    )
+    try:
+        result = service.create_github_repository_for_project(
+            user_id=current_user.id,
+            project_id=project_id,
+            data=payload
+        )
+        return result
+    
+    except Exception as e:
+        print("Caught:", e)
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            detail="Cloning failed",
+        )
 
 
 @router.post(
@@ -140,14 +149,20 @@ def upload_zip_repository_for_project(
     file: UploadFile,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
-):
+):  
     service = RepositoryService(db=db)
-
-    return service.create_zip_repository_for_project(
-        user_id=current_user.id,
-        project_id=project_id,
-        file=file
-    )
+    try:     
+        repo =  service.create_zip_repository_for_project(
+            user_id=current_user.id,
+            project_id=project_id,
+            file=file
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            detail="ZIP extraction failed or unsupported zip."
+        )
+    return repo
 
 
 @router.delete(
@@ -190,12 +205,13 @@ def delete_project(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Project not found"
         )
-
+    
     # If the project had a repository, clean it up if orphaned
-    repo_service.cleanup_repository_if_orphan(
-        user_id=current_user.id,
-        repository_id=old_repository_id
-    )
-
+    if old_repository_id != "no_repo":
+        repo_service.cleanup_repository_if_orphan(
+            user_id=current_user.id,
+            repository_id=old_repository_id
+        )
+        
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

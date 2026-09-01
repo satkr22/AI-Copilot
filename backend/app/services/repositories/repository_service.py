@@ -1,11 +1,19 @@
+import os
 from datetime import datetime, timezone
+from pathlib import Path
 
 from fastapi import HTTPException, UploadFile, status
+
+from sqlalchemy import insert
 from sqlalchemy.orm import Session
 
 from app.models.project import Project, ProjectStatus
 from app.models.repository import Repository, SourceType
+from app.models.repository_branch import RepositoryBranch
+from app.models.repository_branch import RepositoryBranch
+
 from app.schemas.repository import GithubRepositoryCreate
+
 from app.services.repositories.storage_service import RepositoryStorageService
 
 
@@ -94,9 +102,7 @@ class RepositoryService:
             user_id=user_id,
             source_type=SourceType.GITHUB,
             source_url=str(data.source_url) if data.source_url else None,
-            branch=data.branch,
             local_path=None,
-            commit_hash=None,
             created_at=datetime.now(timezone.utc),
             indexed_at=None
         )
@@ -106,14 +112,35 @@ class RepositoryService:
 
         # Create local storage folder and record the path
         storage_path = self.storage.ensure_repository_storage(user_id, repository.id)
-        repository.local_path = str(storage_path)
+        
+        # now clone the github repo into local repo  folder
+        try:
+            branches = self.storage.clone_github_snapshot(storage_path, str(data.source_url))
+        
+            repository.local_path = str(storage_path)
+            project.repository_id = repository.id
+            project.status = ProjectStatus.IMPORTED
+            project.updated_at = datetime.now(timezone.utc)
 
-        project.repository_id = repository.id
-        project.status = ProjectStatus.IMPORTED
-        project.updated_at = datetime.now(timezone.utc)
-
-        self.db.commit()
-        self.db.refresh(repository)
+            # insert into 'repository_branches' table to store each branches commit and name seperately 
+            self.db.execute(
+                insert(RepositoryBranch),
+                [
+                    {
+                        "repository_id": repository.id,
+                        "branch_name": branch_name,
+                        "latest_commit_hash": commit_hash,
+                        "indexed_at": None,
+                    }
+                    for branch_name, commit_hash in branches.items()
+                ],
+            )
+            self.db.commit()
+            self.db.refresh(repository)
+            
+        except Exception:
+            self.storage.delete_repository_storage(user_id, repository.id)
+            raise
 
         return repository
 
@@ -139,16 +166,24 @@ class RepositoryService:
         self.db.add(repository)
         self.db.flush()
 
-        storage_path = self.storage.ensure_repository_storage(user_id, repository.id)
-        repository.local_path = str(storage_path)
+        # stroe zip till it is extracted 
+        storage_path = self.storage.ensure_repository_storage(user_id=user_id, repository_id=repository.id)
 
         # Save the uploaded zip file into the repo folder (no unzip yet)
-        filename = file.filename or "upload.zip"
-        saved_path = storage_path / filename
-        with saved_path.open("wb") as f:
+        filename = "upload.zip"
+        zip_saved_path = storage_path/ filename
+        with zip_saved_path.open("wb") as f:
             while chunk := file.file.read(1024 * 1024):
                 f.write(chunk)
+        
+        # zip ingestion: extarct the zip, store the files and delete the zip, if extraction fails, delete the zip and repo folder
+        try:
+            self.ingest_zip_snapshot(storage_path, zip_saved_path)
+        except Exception:
+            self.storage.delete_repository_storage(user_id, repository.id)
+            raise 
 
+        repository.local_path = str(storage_path)
         project.repository_id = repository.id
         project.status = ProjectStatus.IMPORTED
         project.updated_at = datetime.now(timezone.utc)
@@ -156,6 +191,22 @@ class RepositoryService:
         self.db.commit()
         self.db.refresh(repository)
         return repository
+    
+
+    def ingest_zip_snapshot(
+        self,
+        destination_path: Path,
+        uploaded_zip_path: Path,
+    ) -> None:
+        try:
+            self.storage.extract_zip_safely(uploaded_zip_path, Path(destination_path))
+            os.remove(uploaded_zip_path)
+        except Exception:
+           raise
+            
+            
+
+    # except Exception:
 
     def detach_repository_from_project(
         self,
@@ -196,6 +247,19 @@ class RepositoryService:
         )
         return count == 0
 
+
+    def get_repository_branches(
+        self,
+        repository_id: str
+    ):
+        return (
+            self.db.query(RepositoryBranch)
+            .filter(
+                RepositoryBranch.repository_id == repository_id
+            ).all()
+        )
+        
+
     def cleanup_repository_if_orphan(self, user_id: str, repository_id: str) -> None:
         if not self.is_repository_orphan(user_id, repository_id):
             return
@@ -204,7 +268,13 @@ class RepositoryService:
         if repository is None:
             return
 
+        
+        repo_branches = self.get_repository_branches(repository_id)
+        for branch in repo_branches:
+            self.db.delete(branch)
+        
         self.storage.delete_repository_storage(user_id, repository_id)
+        
         self.db.delete(repository)
         self.db.flush()
 

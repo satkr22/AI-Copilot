@@ -276,3 +276,4 @@ file discovery foundation
 ignore rules
 ```
 
+Clone the repository once, identify the branches, process each branch's current tree, and maintain the index at the latest successfully indexed commit for each branch.  

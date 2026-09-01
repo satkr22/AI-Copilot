@@ -9,6 +9,7 @@ WORKDIR /app
 
 # PostgreSQL client for pg_isready
 RUN apt-get update && \
+    apt-get install -y git && \
     apt-get install -y postgresql-client && \
     rm -rf /var/lib/apt/lists/*
 

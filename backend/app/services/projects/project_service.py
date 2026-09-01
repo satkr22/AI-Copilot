@@ -70,6 +70,8 @@ class ProjectService:
             return None
 
         old_repository_id = project.repository_id
+        if old_repository_id is None:
+            old_repository_id = "no_repo"
         self.db.delete(project)
         self.db.flush()
         return old_repository_id
