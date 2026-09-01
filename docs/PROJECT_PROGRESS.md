@@ -276,4 +276,63 @@ file discovery foundation
 ignore rules
 ```
 
-Clone the repository once, identify the branches, process each branch's current tree, and maintain the index at the latest successfully indexed commit for each branch.  
+
+## Day 4 Progress Update: Repository Materialization And Branch Snapshot Foundation
+
+Date: 2026-09-02
+
+Day 4 moved the project from repository metadata only toward real repository materialization on local storage.
+
+Implemented or started:
+
+- GitHub repository import now attempts to clone the repository into the local repository storage folder.
+- Backend Docker image now installs `git`, allowing the backend container to perform GitHub clone operations.
+- ZIP repository upload now stores the uploaded archive using a constant filename, extracts it into the repository storage folder, and removes the uploaded ZIP after successful extraction.
+- ZIP extraction includes path traversal protection to prevent archive entries from escaping the repository storage folder.
+- Repository storage cleanup still removes local repository folders when orphan repositories are deleted.
+- A new `repository_branches` table/model was added to support the revised branch-level indexing design.
+- `RepositoryBranch` is now imported through `backend/app/models/__init__.py`, so database table creation can discover the model directly.
+- GitHub import identifies remote branches and stores each branch name with its latest commit hash in `repository_branches`.
+- `repositories` now represents repository-level metadata, while branch commit tracking belongs to `repository_branches`.
+- A `FileDiscoveryService` was added with basic directory walking, ignored directory filtering, and max file size filtering.
+
+Updated repository snapshot decision:
+
+```text
+Clone the repository once.
+Identify repository branches.
+Store each branch's latest commit hash in repository_branches.
+Later indexing will process each branch and maintain indexed_at per branch.
+```
+
+Current Day 4 status:
+
+```text
+ZIP extraction: implemented
+GitHub clone: implemented
+Repository branch discovery: implemented
+Branch commit hash storage: implemented in repository_branches
+RepositoryBranch model registration: fixed
+File discovery foundation: created but not wired into ingestion yet
+Exception handling cleanup: still pending
+```
+
+What still needs to be added or fixed from Day 4:
+
+- Wire `FileDiscoveryService` into the ingestion flow after ZIP extraction and after GitHub clone/branch discovery.
+- Decide and add persistence for discovered files, most likely a future `repository_files` table linked to `repositories` and optionally `repository_branches`.
+- For GitHub repositories, decide whether Day 5 file discovery should inspect only the checked-out tree first or use `git ls-tree` for each remote branch.
+- Update API response schemas and frontend display to match the new branch-level model instead of expecting `branch` and `commit_hash` directly on `repositories`.
+- Improve route exception handling so existing `HTTPException` errors such as project not found are not masked as clone or ZIP failures.
+- Clean up duplicate imports, debug `print()` calls, spelling issues in comments, and formatting in repository services.
+- Add focused tests or manual verification notes for GitHub clone success, clone failure cleanup, ZIP extraction success, unsafe ZIP rejection, and orphan cleanup after materialized repositories.
+
+
+
+
+# My comments:
+- Clone the repository once, identify the branches, process each branch's current tree, and maintain the index at the latest successfully indexed commit for each branch.
+
+- fix exception handlingm properly to solve masking problem.
+
+- add: if zip repo is git repo then find its branches and save save each brach name and commit in 'repository_branch' table. other wise simply make it git repo and then follow the same as for u did for git repo storage.
