@@ -2,7 +2,6 @@
 .agents
 .codex
 Git_Cheat_Sheet.md
-docs
 Learning
 zz.txt
 *.pyc
@@ -18,7 +17,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-zx.py
+zz.py
 dist
 dist-ssr
 *.local
