@@ -1,12 +1,12 @@
 # AI Copilot Project Progress
 
-Last updated: 2026-08-31
+Last updated: 2026-09-04
 
 ## Current Status
 
-The project has completed the foundation phase and the initial repository lifecycle phase. The application is currently a working FastAPI + React + PostgreSQL + Qdrant setup with user-owned projects and repository snapshots.
+The project has completed the foundation, repository lifecycle, and repository materialization phases. The application is currently a working FastAPI + React + PostgreSQL + Qdrant setup with user-owned projects, local repository snapshots, GitHub clone import, ZIP upload/extraction, and branch-level commit tracking.
 
-The current implementation is intentionally still pre-indexing. There is no LangGraph, RAG, Tree-sitter, embeddings, or Qdrant search logic yet.
+The current implementation is intentionally still pre-indexing. There is no Tree-sitter parsing, symbol extraction, chunking, embeddings, Qdrant search logic, LangGraph workflow, or repository chat yet.
 
 ## Implemented Architecture
 
@@ -19,6 +19,8 @@ React Frontend
       -> Project service
       -> Repository service
       -> Storage service
+      -> File discovery service
+      -> Indexing service skeleton
       -> SQLAlchemy models
   -> PostgreSQL
   -> Qdrant
@@ -67,7 +69,7 @@ Implemented:
 - Repository listing.
 - Repository detail fetch.
 - Attach existing repository to a project.
-- Create a GitHub repository snapshot record and attach it to a project.
+- Create and attach a GitHub repository snapshot record.
 
 Current relationship model:
 
@@ -103,6 +105,9 @@ GET  /repositories/{repository_id}
 GET  /projects/{project_id}/repository
 PUT  /projects/{project_id}/repository
 POST /projects/{project_id}/repository/github
+POST /projects/{project_id}/repository/zip
+DELETE /projects/{project_id}/repository
+DELETE /projects/{project_id}
 ```
 
 ## Day 3 Completed: Repository Lifecycle And Storage Foundation
@@ -115,7 +120,6 @@ Implemented:
 - Safe repository storage deletion.
 - GitHub repository records now get a local storage path.
 - ZIP repository upload endpoint.
-- ZIP file saving into local repository storage.
 - Detach repository from project.
 - Delete project.
 - Orphan repository cleanup.
@@ -142,22 +146,7 @@ When a repository is detached from a project, delete the repository row and loca
 When a project is deleted, delete its attached repository row and local storage only if no other project owned by the user references it.
 ```
 
-Current ZIP behavior:
-
-```text
-ZIP file is accepted and stored.
-ZIP is not extracted yet.
-Repository files are not indexed yet.
-```
-
-Current GitHub behavior:
-
-```text
-GitHub URL and branch are stored.
-Local storage folder is created.
-Repository is not cloned yet.
-Commit hash is not captured yet.
-```
+Day 3 created the repository lifecycle and storage foundation. Day 4 later added actual clone/extraction materialization on top of this storage layer.
 
 ## Frontend Current Behavior
 
@@ -173,6 +162,7 @@ Implemented:
 - Attach repository through GitHub URL.
 - Attach an existing repository.
 - Upload ZIP repository.
+- Display branch names and short commit hashes for attached repositories.
 - Detach repository from project.
 - Delete project.
 
@@ -190,15 +180,20 @@ Included so far:
 - React/Vite
 - Docker Compose
 - Local filesystem storage
+- GitHub clone materialization
+- ZIP extraction/materialization
+- Branch-level repository snapshot metadata
+- File discovery utility prepared for indexing
 
 Not included yet:
 
-- Actual GitHub clone.
-- ZIP extraction.
-- Indexing jobs.
-- File discovery.
+- Indexing job persistence.
+- Repository file metadata persistence.
 - Tree-sitter parsing.
 - Symbol extraction.
+- Import extraction.
+- Function call extraction.
+- API endpoint extraction.
 - Chunking.
 - Embeddings.
 - Qdrant vector writes.
@@ -237,10 +232,12 @@ PostgreSQL owns structured data:
 - users
 - projects
 - repositories
-- future files
+- repository_branches
+- future indexing_jobs
+- future repository_files
 - future symbols
 - future chunks
-- future indexing jobs
+- future chat metadata
 
 Qdrant will only store vector embeddings and small payload metadata.
 
@@ -254,36 +251,13 @@ Reason:
 Local storage keeps development simple. S3 can be added later if deployment requirements justify it.
 ```
 
-## Known Gaps To Address Soon
+## Day 4 Completed: Repository Materialization And Branch Snapshot Foundation
 
-- Add ZIP extraction.
-- Add GitHub clone.
-- Add commit hash capture for GitHub snapshots.
-- Add indexing job model and API.
-- Add file discovery and ignore rules.
-- Clean generated `__pycache__` files from the working tree if they are not ignored correctly.
-- Avoid expanding auth complexity further until core repository intelligence is working.
+Date: 2026-09-04
 
-## Next Phase
+Day 4 moved the project from repository metadata only into real repository materialization on local storage.
 
-Day 4 should focus on turning repository snapshots into real local source trees:
-
-```text
-ZIP extraction
-GitHub clone
-repository snapshot validation
-file discovery foundation
-ignore rules
-```
-
-
-## Day 4 Progress Update: Repository Materialization And Branch Snapshot Foundation
-
-Date: 2026-09-02
-
-Day 4 moved the project from repository metadata only toward real repository materialization on local storage.
-
-Implemented or started:
+Implemented:
 
 - GitHub repository import now attempts to clone the repository into the local repository storage folder.
 - Backend Docker image now installs `git`, allowing the backend container to perform GitHub clone operations.
@@ -294,7 +268,16 @@ Implemented or started:
 - `RepositoryBranch` is now imported through `backend/app/models/__init__.py`, so database table creation can discover the model directly.
 - GitHub import identifies remote branches and stores each branch name with its latest commit hash in `repository_branches`.
 - `repositories` now represents repository-level metadata, while branch commit tracking belongs to `repository_branches`.
-- A `FileDiscoveryService` was added with basic directory walking, ignored directory filtering, and max file size filtering.
+- ZIP uploads without `.git` are initialized as Git repositories with an initial `main` commit.
+- ZIP uploads containing `.git` are validated as existing Git repositories.
+- Repository validation checks Git structure, object integrity, and unsafe symlinks.
+- Existing repository attach duplicates the source repository into a new repository snapshot and stores fresh branch rows.
+- Repository API responses include branch snapshot data.
+- Minimal frontend display shows branch names and short commit hashes.
+- Import exception handling preserves real `HTTPException` responses such as `404 Project not found`.
+- Expected GitHub/ZIP import failures return clean `406` responses.
+- Failed GitHub/ZIP imports delete partial local storage and roll back pending DB state.
+- A `FileDiscoveryService` was added with Git commit-based discovery, ignored directory filtering, and max file size filtering.
 
 Updated repository snapshot decision:
 
@@ -313,19 +296,49 @@ GitHub clone: implemented
 Repository branch discovery: implemented
 Branch commit hash storage: implemented in repository_branches
 RepositoryBranch model registration: fixed
-File discovery foundation: created but not wired into ingestion yet
-Exception handling cleanup: still pending
+Repository API branch response: implemented
+Minimal frontend branch display: implemented
+Import exception handling: implemented
+File discovery foundation: created intentionally for Day 5 indexing
 ```
 
-What still needs to be added or fixed from Day 4:
+Important Day 4 boundary:
 
-- Wire `FileDiscoveryService` into the ingestion flow after ZIP extraction and after GitHub clone/branch discovery.
-- Decide and add persistence for discovered files, most likely a future `repository_files` table linked to `repositories` and optionally `repository_branches`.
-- For GitHub repositories, decide whether Day 5 file discovery should inspect only the checked-out tree first or use `git ls-tree` for each remote branch.
-- Update API response schemas and frontend display to match the new branch-level model instead of expecting `branch` and `commit_hash` directly on `repositories`.
-- Improve route exception handling so existing `HTTPException` errors such as project not found are not masked as clone or ZIP failures.
-- Clean up duplicate imports, debug `print()` calls, spelling issues in comments, and formatting in repository services.
-- Add focused tests or manual verification notes for GitHub clone success, clone failure cleanup, ZIP extraction success, unsafe ZIP rejection, and orphan cleanup after materialized repositories.
+```text
+FileDiscoveryService exists, but it is intentionally not wired into repository ingestion.
+File discovery is the first step of Day 5 indexing.
+```
 
+## Next Phase: Day 5 Indexing Foundation
 
+Day 5 should start the indexing pipeline, not the AI chat workflow.
 
+Primary goal:
+
+```text
+Repository snapshot exists locally
+-> create indexing job
+-> discover files from branch commit snapshots
+-> persist repository file metadata
+-> update indexing status/timestamps
+-> prepare for Tree-sitter parsing and chunking later
+```
+
+Day 5 should implement:
+
+- `indexing_jobs` model/table.
+- `repository_files` model/table.
+- Indexing service flow using existing `FileDiscoveryService`.
+- Minimal indexing trigger API.
+- Indexing success/failure state persistence.
+- Branch and repository `indexed_at` timestamp updates after successful discovery.
+
+Day 5 should not implement yet:
+
+- Tree-sitter parsing.
+- Symbol extraction.
+- Chunking.
+- Embeddings.
+- Qdrant writes.
+- LangGraph workflow.
+- Repository chat.
