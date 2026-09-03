@@ -25,6 +25,16 @@ class GithubRepositoryCreate(BaseModel):
 
 # ---------- Response ----------
 
+class RepositoryBranchResponse(BaseModel):
+    id: str
+    branch_name: str
+    latest_commit_hash: str
+    original_commit_hash: str
+    indexed_at: datetime | None
+
+    model_config = {"from_attributes": True}
+
+
 class RepositoryResponse(BaseModel):
     id: str
     source_type: SourceType
@@ -32,5 +42,6 @@ class RepositoryResponse(BaseModel):
     local_path: str | None
     created_at: datetime
     indexed_at: datetime | None
+    branches: list[RepositoryBranchResponse] = Field(default_factory=list)
 
     model_config = {"from_attributes": True}

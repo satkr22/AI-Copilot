@@ -198,6 +198,7 @@ class RepositoryStorageService:
                 capture_output=True,
                 text=True,
             )
+            print("#######################cloining okay 1..................")
             
             # Validate that Git created a valid repository.  
             self.validate_git_repository(repo_dir)
@@ -205,10 +206,13 @@ class RepositoryStorageService:
             branches =  self.get_git_branches(repo_dir)
             if not branches:
                 raise ValueError("Uploaded Git repository contains no branches")
+
+            print("#######################cloining okay final..................")
+            
             return branches
 
-        except Exception:
-            raise ValueError("Cloning falied")
+        except Exception as e:
+            raise ValueError("Cloning failed") from e
     
     
     
@@ -230,6 +234,9 @@ class RepositoryStorageService:
             capture_output=True,
             text=True,
         )
+        
+        print("#######################validation okay 1..................")
+        
 
         # Verify Git object database and connectivity.
         result = subprocess.run(
@@ -245,28 +252,24 @@ class RepositoryStorageService:
             text=True,
         )
         
-        repo_root = repo_dir.resolve()
+        print("#######################validation okay 2..................")
         
-        for path in repo_dir.rglob("*"):
-            if path.is_symlink():
-                resolved = path.resolve()
-                try:
-                    resolved.relative_to(repo_root)
-                except ValueError:
-                    raise ValueError(
-                        f"Repository contains symlink outside repository: {path}"
-                    )
+        print("#######################validation okay 3..................")
 
         if result.returncode != 0:
             raise ValueError(
                 f"Git repository is corrupted:\n{result.stdout}\n{result.stderr}"
             )
+            
+        print("#######################validation okay final..................")
     
     def get_git_branches(
         self,
         repo_dir: Path,
     ) -> dict[str, str]:
 
+        print("#######################git brnanches okay 1..................")
+        
         result = subprocess.run(
             [
                 "git",
@@ -282,6 +285,7 @@ class RepositoryStorageService:
             text=True,
         )
 
+        print("#######################git brnanches okay 2..................")
         branches = {}
 
         for line in result.stdout.splitlines():
@@ -301,6 +305,7 @@ class RepositoryStorageService:
 
             branches[branch_name] = commit_hash
 
+        print("#######################git brnanches okay final..................")
         return branches
     
     
@@ -311,19 +316,30 @@ class RepositoryStorageService:
     def _validate_id(value: str) -> None:
         if not value or not _ID_PATTERN.match(value):
             raise ValueError(f"Invalid id: {value!r}")
-       
-    # detect any symlink outside repository
-    def _validate_github_repository(self, repo_dir: Path) -> None:
-        repo_root = repo_dir.resolve()
-
-        for path in repo_dir.rglob("*"):
-            if path.is_symlink():
-                resolved = path.resolve()
-
-                try:
-                    resolved.relative_to(repo_root)
-                except ValueError:
-                    raise ValueError(
-                        f"Repository contains symlink outside repository: {path}"
-                    )
-
+        
+        
+        
+        
+        
+      
+    # NOTE: 
+    # this symlink check is required when we are use .read_bytes() not when reading from git objects.
+    # (real_path := repository_root / relative_path).read_bytes()
+    # open(repository_root / relative_path)
+    # Path.resolve()
+    
+    # if repo has any symlink outside the repo
+    # def detect_symlink(self, repo_dir: Path):
+        
+    #     repo_root = repo_dir.resolve()
+        
+    #     for path in repo_dir.rglob("*"):
+    #         if path.is_symlink():
+    #             resolved = path.resolve()
+    #             try:
+    #                 resolved.relative_to(repo_root)
+    #             except ValueError:
+    #                 raise ValueError(
+    #                     f"Repository contains symlink outside repository: {path}"
+    #                 )
+    

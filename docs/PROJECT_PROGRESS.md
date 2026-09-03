@@ -329,10 +329,3 @@ What still needs to be added or fixed from Day 4:
 
 
 
-
-# My comments:
-- Clone the repository once, identify the branches, process each branch's current tree, and maintain the index at the latest successfully indexed commit for each branch.
-
-- fix exception handlingm properly to solve masking problem.
-
-- add: if zip repo is git repo then find its branches and save save each brach name and commit in 'repository_branch' table. other wise simply make it git repo and then follow the same as for u did for git repo storage.

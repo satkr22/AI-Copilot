@@ -130,12 +130,13 @@ def create_github_repository_for_project(
             data=payload
         )
         return result
-    
-    except Exception as e:
-        print("Caught:", e)
+
+    except HTTPException:
+        raise
+    except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
-            detail="Cloning failed",
+            detail=str(e),
         )
 
 
@@ -157,11 +158,12 @@ def upload_zip_repository_for_project(
             project_id=project_id,
             file=file
         )
-    except Exception as e:
-        print(e)
+    except HTTPException:
+        raise
+    except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
-            detail="ZIP extraction failed or unsupported zip."
+            detail=str(e)
         )
     return repo
 

@@ -1,6 +1,7 @@
 import os
 import shutil
 import subprocess
+import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -11,7 +12,6 @@ from sqlalchemy.orm import Session
 
 from app.models.project import Project, ProjectStatus
 from app.models.repository import Repository, SourceType
-from app.models.repository_branch import RepositoryBranch
 from app.models.repository_branch import RepositoryBranch
 
 from app.schemas.repository import GithubRepositoryCreate
@@ -151,8 +151,17 @@ class RepositoryService:
                 branches=branches,
             )
         
+        except HTTPException:
+            self.storage.delete_repository_storage(user_id, repository.id)
+            self.db.rollback()
+            raise
+        except ValueError:
+            self.storage.delete_repository_storage(user_id, repository.id)
+            self.db.rollback()
+            raise
         except Exception:
             self.storage.delete_repository_storage(user_id, repository.id)
+            self.db.rollback()
             raise
         
 
@@ -200,14 +209,21 @@ class RepositoryService:
                 branches=branches,
             )   
             
-        except subprocess.CalledProcessError as e:
-            print("COMMAND:", e.cmd)
-            print("STDOUT:", e.stdout)
-            print("STDERR:", e.stderr)
+        except HTTPException:
+            self.storage.delete_repository_storage(user_id, repository.id)
+            self.db.rollback()
             raise
-        
+        except (subprocess.CalledProcessError, zipfile.BadZipFile) as e:
+            self.storage.delete_repository_storage(user_id, repository.id)
+            self.db.rollback()
+            raise ValueError("ZIP extraction failed or unsupported zip") from e
+        except ValueError:
+            self.storage.delete_repository_storage(user_id, repository.id)
+            self.db.rollback()
+            raise
         except Exception:
             self.storage.delete_repository_storage(user_id, repository.id)
+            self.db.rollback()
             raise
             
     # helper function to put repository data in db
@@ -220,6 +236,7 @@ class RepositoryService:
         branches: dict[str, str],
     ) -> Repository:
 
+        print("####################### db add okay 1..................")
         project = self._get_project_for_user(user_id, project_id)
 
         repository.local_path = str(storage_path)
@@ -228,6 +245,8 @@ class RepositoryService:
         project.status = ProjectStatus.IMPORTED
         project.updated_at = datetime.now(timezone.utc)
 
+        print("####################### db add okay 2..................")
+        
         self.db.execute(
             insert(RepositoryBranch),
             [
@@ -241,9 +260,13 @@ class RepositoryService:
                 for branch_name, commit_hash in branches.items()
             ],
         )
+        print("####################### db add okay 3..................")
+        
 
         self.db.commit()
+        print("####################### db add okay 4..................")
         self.db.refresh(repository)
+        print("####################### db add okay final..................")
 
         return repository
 

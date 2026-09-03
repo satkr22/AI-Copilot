@@ -16,13 +16,22 @@ type Project = {
   status: string;
 };
 
+type RepositoryBranch = {
+  id: string;
+  branch_name: string;
+  latest_commit_hash: string;
+  original_commit_hash: string;
+  indexed_at: string | null;
+};
+
 type Repository = {
   id: string;
   source_type: string;
   source_url: string | null;
   local_path: string | null;
-  branch: string | null;
-  commit_hash: string | null;
+  branch?: string | null;
+  commit_hash?: string | null;
+  branches?: RepositoryBranch[];
   created_at: string;
   indexed_at: string | null;
 };
@@ -367,6 +376,8 @@ export default function App() {
     return repository.source_url || repository.local_path || repository.id;
   };
 
+  const shortCommit = (commitHash: string) => commitHash.slice(0, 8);
+
   if (!user) {
     return (
       <main style={styles.container}>
@@ -441,7 +452,17 @@ export default function App() {
           {attachedRepository ? (
             <div>
               <strong>{repositoryLabel(attachedRepository)}</strong>
-              <p>Branch: {attachedRepository.branch || "none"}</p>
+              <p>
+                Branches:{" "}
+                {attachedRepository.branches?.length
+                  ? attachedRepository.branches
+                      .map(
+                        (repoBranch) =>
+                          `${repoBranch.branch_name} (${shortCommit(repoBranch.latest_commit_hash)})`
+                      )
+                      .join(", ")
+                  : attachedRepository.branch || "none"}
+              </p>
               <p>Indexed: {attachedRepository.indexed_at || "not indexed"}</p>
 
               <button
