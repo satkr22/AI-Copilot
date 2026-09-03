@@ -92,7 +92,7 @@ def get_project_repository(
 
 @router.put(
     "/{project_id}/repository",
-    response_model=ProjectResponse,
+    response_model=RepositoryResponse,
     status_code=200
 )
 def attach_existing_repository(
@@ -157,7 +157,8 @@ def upload_zip_repository_for_project(
             project_id=project_id,
             file=file
         )
-    except Exception:
+    except Exception as e:
+        print(e)
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
             detail="ZIP extraction failed or unsupported zip."

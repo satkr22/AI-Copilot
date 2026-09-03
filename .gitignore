@@ -22,6 +22,7 @@ dist
 dist-ssr
 *.local
 docs/NEXT_DAY_PLAN.md
+docs/FUTURE_DECISIONS.md
 
 # Editor directories and files
 .vscode/*

@@ -245,7 +245,7 @@ export default function App() {
     setMessage("GitHub repository attached to project");
   };
 
-  const attachExistingRepository = async () => {
+  const duplicateExistingRepository = async () => {
     if (!selectedProject || !selectedRepositoryId) {
       setMessage("Select a repository first");
       return;
@@ -265,7 +265,7 @@ export default function App() {
 
     await refreshDashboard();
     setSelectedRepositoryId("");
-    setMessage("Existing repository attached to project");
+    setMessage("Duplicate repository attached to project");
   };
 
   const detachRepository = async () => {
@@ -484,8 +484,8 @@ export default function App() {
                 ))}
               </select>
 
-              <button onClick={attachExistingRepository} style={styles.primary}>
-                Attach Existing Repository
+              <button onClick={duplicateExistingRepository} style={styles.primary}>
+                Duplicate Existing Repository
               </button>
 
               <div style={styles.uploadSection}>

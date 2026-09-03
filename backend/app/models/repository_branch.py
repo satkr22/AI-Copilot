@@ -44,6 +44,11 @@ class RepositoryBranch(Base):
         String(40),
         nullable=False
     )
+    
+    original_commit_hash: Mapped[str] = mapped_column(
+        String(40),
+        nullable=False
+    )
 
     indexed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),

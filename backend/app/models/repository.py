@@ -13,6 +13,7 @@ from app.db.base import Base
 class SourceType(str, Enum):
     ZIP = "zip"
     GITHUB = "github"
+    DUPLICATE = "duplicate"
 
 
 class Repository(Base):
@@ -63,6 +64,12 @@ class Repository(Base):
 
     indexed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
+        nullable=True
+    )
+    
+    # contains id of the repo from this repo is created
+    duplicate: Mapped[str | None] = mapped_column(
+        String(100),
         nullable=True
     )
 
