@@ -1,4 +1,4 @@
-# System Architecture Flow
+# Indexing Architecture Flow
 
 ```plaintext
 Repository DB
