@@ -88,3 +88,13 @@ class Repository(Base):
         "RepositoryBranch",
         back_populates="repo"
     )
+    
+    indexing_jobs: Mapped[list["IndexingJob"]] = relationship( #type: ignore
+        "IndexingJob",
+        back_populates="repo"
+    )
+    
+    files: Mapped[list["RepositoryFile"]] = relationship( #type: ignore
+        "RepositoryFile",
+        back_populates="repository"
+    )

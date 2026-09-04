@@ -31,7 +31,7 @@ class FileDiscoveryService:
         repository_root: Path,
         branch_name: str,
         commit_hash: str,
-    ) -> list[str]:
+    ) -> dict[str, int]:
 
         result = subprocess.run(
             [
@@ -48,7 +48,7 @@ class FileDiscoveryService:
             text=True,
         )
 
-        files = []
+        files = {}
 
         for relative_path in result.stdout.splitlines():
             relative_path = relative_path.strip()
@@ -73,7 +73,7 @@ class FileDiscoveryService:
             if file_size > MAX_FILE_SIZE:
                 continue
 
-            files.append(relative_path)
+            files[relative_path] = file_size
 
         return files
 

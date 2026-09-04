@@ -1,5 +1,6 @@
 import os
 import shutil
+from shutil import copytree, ignore_patterns
 import subprocess
 import zipfile
 from datetime import datetime, timezone
@@ -13,10 +14,13 @@ from sqlalchemy.orm import Session
 from app.models.project import Project, ProjectStatus
 from app.models.repository import Repository, SourceType
 from app.models.repository_branch import RepositoryBranch
+from app.models.repository_file import RepositoryFile
+from app.models.indexing_jobs import IndexingJob
 
 from app.schemas.repository import GithubRepositoryCreate
 
 from app.services.repositories.storage_service import RepositoryStorageService
+from app.services.indexing.indexing_service import IndexingService
 
 
 class RepositoryService:
@@ -24,6 +28,7 @@ class RepositoryService:
     def __init__(self, db: Session):
         self.db = db
         self.storage = RepositoryStorageService()
+        self.indexing = IndexingService(db)
 
     def list_repositories(self, user_id: str) -> list[Repository]:
         return (
@@ -67,6 +72,24 @@ class RepositoryService:
             )
 
         return repository
+    
+    def index_repository(
+        self,
+        user_id: str,
+        repository_id: str
+    ):
+        
+        repository = self.get_repository(user_id, repository_id)
+        if repository is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Repository not found"
+            )
+
+        return self.indexing.index_repository(repository)
+
+    
+    
 
     def attach_repository(
         self,
@@ -102,7 +125,21 @@ class RepositoryService:
         # this is source path of old repo on the disk
         source_path = self.storage.build_repository_path(user_id, repository_id)
         
-        shutil.copytree(src=source_path, dst=storage_path, dirs_exist_ok=True)
+        shutil.copytree(
+            src=source_path, 
+            dst=storage_path, 
+            dirs_exist_ok=True,
+            ignore=ignore_patterns(
+                "venv",
+                ".venv",
+                "__pycache__",
+                "node_modules",
+                "dist",
+                "build",
+                ".next",
+            ),
+            symlinks=True,
+        )
         
         # get the branches of the new git folder 
         branches = self.storage.get_git_branches(storage_path)
@@ -327,6 +364,29 @@ class RepositoryService:
             ).all()
         )
         
+    def get_repository_files(
+        self,
+        repository_id: str
+    ):
+        return (
+            self.db.query(RepositoryFile)
+            .filter(
+                RepositoryFile.repository_id == repository_id
+            ).all()
+        )
+        
+    def get_index_jobs(
+        self,
+        repository_id: str
+    ):
+        return (
+            self.db.query(IndexingJob)
+            .filter(
+                IndexingJob.repository_id == repository_id
+            ).all()
+        )
+        
+        
 
     def cleanup_repository_if_orphan(self, user_id: str, repository_id: str) -> None:
         if not self.is_repository_orphan(user_id, repository_id):
@@ -335,12 +395,20 @@ class RepositoryService:
         repository = self.get_repository(user_id, repository_id)
         if repository is None:
             return
-
         
+        repository_files = self.get_repository_files(repository_id)
+        for repo_file in repository_files:
+            self.db.delete(repo_file)
+            
+        index_jobs = self.get_index_jobs(repository_id)
+        for job in index_jobs:
+            self.db.delete(job)
+            
         repo_branches = self.get_repository_branches(repository_id)
         for branch in repo_branches:
             self.db.delete(branch)
         
+        # remove repo data from local storage
         self.storage.delete_repository_storage(user_id, repository_id)
         
         self.db.delete(repository)

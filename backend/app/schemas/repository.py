@@ -45,3 +45,5 @@ class RepositoryResponse(BaseModel):
     branches: list[RepositoryBranchResponse] = Field(default_factory=list)
 
     model_config = {"from_attributes": True}
+    
+

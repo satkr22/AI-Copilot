@@ -36,6 +36,18 @@ type Repository = {
   indexed_at: string | null;
 };
 
+type IndexingJob = {
+  id: string;
+  repository_id: string;
+  branch_name: string;
+  commit_hash: string | null;
+  status: "pending" | "running" | "completed" | "failed";
+  started_at: string;
+  completed_at: string | null;
+  error_message: string | null;
+  created_at: string;
+};
+
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -51,6 +63,8 @@ export default function App() {
   const [githubUrl, setGithubUrl] = useState("");
   const [branch, setBranch] = useState("main");
   const [message, setMessage] = useState("");
+  const [isIndexing, setIsIndexing] = useState(false);
+
 
   // Projects removed in this session. The server can keep answering /projects
   // with a just-deleted row, so the UI never renders an id from this list.
@@ -330,6 +344,43 @@ export default function App() {
     setMessage("Project deleted");
   };
 
+  const indexRepository = async () => {
+    if (!attachedRepository) {
+      setMessage("No repository attached");
+      return;
+    }
+
+    setIsIndexing(true);
+
+    const res = await authFetch(
+      `/repositories/${attachedRepository.id}/index`,
+      {
+        method: "POST",
+      }
+    );
+
+    setIsIndexing(false);
+
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({
+        detail: "Indexing failed",
+      }));
+
+      setMessage(error.detail || "Indexing failed");
+      return;
+    }
+
+    const job: IndexingJob = await res.json();
+
+    await refreshDashboard();
+
+    setMessage(
+      `Indexing completed (${job.branch_name} • ${job.status})`
+    );
+  };
+
+
+
   const uploadZipRepository = async (file: File) => {
     if (!selectedProject) {
       setMessage("Select a project first");
@@ -375,6 +426,8 @@ export default function App() {
   const repositoryLabel = (repository: Repository) => {
     return repository.source_url || repository.local_path || repository.id;
   };
+
+  
 
   const shortCommit = (commitHash: string) => commitHash.slice(0, 8);
 
@@ -463,7 +516,20 @@ export default function App() {
                       .join(", ")
                   : attachedRepository.branch || "none"}
               </p>
-              <p>Indexed: {attachedRepository.indexed_at || "not indexed"}</p>
+              <p>
+                Indexed:{" "}
+                {attachedRepository.indexed_at
+                  ? new Date(attachedRepository.indexed_at).toLocaleString()
+                  : "Not indexed"}
+              </p>
+
+              <button
+                onClick={indexRepository}
+                disabled={isIndexing}
+                style={styles.primary}
+              >
+                {isIndexing ? "Indexing..." : "Index Repository"}
+              </button>
 
               <button
                 onClick={detachRepository}

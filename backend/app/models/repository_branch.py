@@ -60,3 +60,8 @@ class RepositoryBranch(Base):
         "Repository",
         back_populates="branches"
     )
+    
+    files: Mapped[list["RepositoryFile"]] = relationship( #type: ignore
+        "RepositoryFile",
+        back_populates="branch"
+    )
