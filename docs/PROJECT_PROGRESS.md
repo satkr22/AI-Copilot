@@ -1,12 +1,12 @@
 # AI Copilot Project Progress
 
-Last updated: 2026-09-04
+Last updated: 2026-09-05
 
 ## Current Status
 
-The project has completed the foundation, repository lifecycle, and repository materialization phases. The application is currently a working FastAPI + React + PostgreSQL + Qdrant setup with user-owned projects, local repository snapshots, GitHub clone import, ZIP upload/extraction, and branch-level commit tracking.
+The project has completed the foundation, repository lifecycle, repository materialization, and indexing foundation phases. The application is currently a working FastAPI + React + PostgreSQL + Qdrant setup with user-owned projects, local repository snapshots, GitHub clone import, ZIP upload/extraction, branch-level commit tracking, and synchronous file metadata indexing.
 
-The current implementation is intentionally still pre-indexing. There is no Tree-sitter parsing, symbol extraction, chunking, embeddings, Qdrant search logic, LangGraph workflow, or repository chat yet.
+The current implementation indexes repository file metadata only. There is no Tree-sitter parsing, symbol extraction, chunking, embeddings, Qdrant search logic, LangGraph workflow, or repository chat yet.
 
 ## Implemented Architecture
 
@@ -20,7 +20,7 @@ React Frontend
       -> Repository service
       -> Storage service
       -> File discovery service
-      -> Indexing service skeleton
+      -> Indexing service
       -> SQLAlchemy models
   -> PostgreSQL
   -> Qdrant
@@ -183,12 +183,13 @@ Included so far:
 - GitHub clone materialization
 - ZIP extraction/materialization
 - Branch-level repository snapshot metadata
-- File discovery utility prepared for indexing
+- File discovery utility
+- Synchronous repository indexing trigger
+- Indexing job persistence
+- Repository file metadata persistence
 
 Not included yet:
 
-- Indexing job persistence.
-- Repository file metadata persistence.
 - Tree-sitter parsing.
 - Symbol extraction.
 - Import extraction.
@@ -233,8 +234,8 @@ PostgreSQL owns structured data:
 - projects
 - repositories
 - repository_branches
-- future indexing_jobs
-- future repository_files
+- indexing_jobs
+- repository_files
 - future symbols
 - future chunks
 - future chat metadata
@@ -309,9 +310,11 @@ FileDiscoveryService exists, but it is intentionally not wired into repository i
 File discovery is the first step of Day 5 indexing.
 ```
 
-## Next Phase: Day 5 Indexing Foundation
+## Day 5 Completed: Indexing Foundation
 
-Day 5 should start the indexing pipeline, not the AI chat workflow.
+Date: 2026-09-04
+
+Day 5 started the indexing pipeline without adding AI chat, embeddings, Qdrant writes, or LangGraph.
 
 Primary goal:
 
@@ -324,16 +327,20 @@ Repository snapshot exists locally
 -> prepare for Tree-sitter parsing and chunking later
 ```
 
-Day 5 should implement:
+Implemented:
 
 - `indexing_jobs` model/table.
 - `repository_files` model/table.
 - Indexing service flow using existing `FileDiscoveryService`.
-- Minimal indexing trigger API.
+- Minimal indexing trigger API through `POST /repositories/{repository_id}/index`.
 - Indexing success/failure state persistence.
 - Branch and repository `indexed_at` timestamp updates after successful discovery.
+- Previous `repository_files` rows for a branch are removed before re-indexing that branch, preventing uncontrolled duplicates.
+- Repository ownership is enforced before indexing.
+- Repository cleanup removes repository files, indexing jobs, branch rows, local storage, and the repository row when the repository is orphaned.
+- Frontend project detail can trigger indexing for the attached repository and display the repository indexed timestamp after refresh.
 
-Day 5 should not implement yet:
+Day 5 intentionally did not implement:
 
 - Tree-sitter parsing.
 - Symbol extraction.
@@ -342,3 +349,57 @@ Day 5 should not implement yet:
 - Qdrant writes.
 - LangGraph workflow.
 - Repository chat.
+
+Current Day 5 status:
+
+```text
+IndexingJob model/schema: implemented
+RepositoryFile model: implemented
+IndexingService: implemented for branch snapshot file discovery
+POST /repositories/{repository_id}/index: implemented
+Success/failure job persistence: implemented
+Branch/repository indexed_at updates: implemented
+Frontend indexing trigger: implemented
+```
+
+Verification performed:
+
+```text
+python -m compileall backend/app
+npm run build
+```
+
+## Next Phase: Day 6 Parsing And Code Intelligence Foundation
+
+Day 6 should add code understanding on top of persisted file metadata, not repository chat or autonomous code generation.
+
+Primary goal:
+
+```text
+Indexed repository files exist
+-> identify supported source files
+-> read file contents from the exact branch commit
+-> parse code structure with Tree-sitter
+-> persist symbol/import metadata in PostgreSQL
+-> prepare chunking and embeddings for later
+```
+
+Day 6 should implement:
+
+- Tree-sitter dependency setup for the first supported languages.
+- A small language detection layer based on file extension/path.
+- Parser service that reads files from the exact commit using `FileDiscoveryService.read_file`.
+- Structured symbol extraction for functions, classes, and methods.
+- Basic import extraction where practical for the supported languages.
+- New PostgreSQL models/tables for parsed code metadata.
+- Indexing service integration after file metadata discovery.
+- Clear parser failure handling per file so one bad file does not fail the whole repository indexing job unless the repository itself is invalid.
+
+Day 6 should not implement yet:
+
+- Embeddings.
+- Qdrant vector writes.
+- Semantic search.
+- LangGraph workflow.
+- Repository chat.
+- Patch generation.

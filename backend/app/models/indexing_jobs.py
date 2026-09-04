@@ -34,18 +34,6 @@ class IndexingJob(Base):
         nullable=False
     )
     
-    # Store which branch was indexed
-    branch_name: Mapped[str | None] = mapped_column(
-        String(500),
-        nullable=False
-    )
-    
-    # Store the commit hash of the branch at indexing time
-    commit_hash: Mapped[str | None] = mapped_column(
-        String(40),  # Git commit hashes are 40 characters
-        nullable=False
-    )
-    
     status: Mapped[JobStatus] = mapped_column(
         SQLEnum(JobStatus),
         nullable=False,

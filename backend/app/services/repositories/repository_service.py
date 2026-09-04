@@ -8,7 +8,7 @@ from pathlib import Path
 
 from fastapi import HTTPException, UploadFile, status
 
-from sqlalchemy import insert
+from sqlalchemy import insert, delete
 from sqlalchemy.orm import Session
 
 from app.models.project import Project, ProjectStatus
@@ -273,7 +273,6 @@ class RepositoryService:
         branches: dict[str, str],
     ) -> Repository:
 
-        print("####################### db add okay 1..................")
         project = self._get_project_for_user(user_id, project_id)
 
         repository.local_path = str(storage_path)
@@ -282,7 +281,6 @@ class RepositoryService:
         project.status = ProjectStatus.IMPORTED
         project.updated_at = datetime.now(timezone.utc)
 
-        print("####################### db add okay 2..................")
         
         self.db.execute(
             insert(RepositoryBranch),
@@ -297,19 +295,12 @@ class RepositoryService:
                 for branch_name, commit_hash in branches.items()
             ],
         )
-        print("####################### db add okay 3..................")
         
 
         self.db.commit()
-        print("####################### db add okay 4..................")
         self.db.refresh(repository)
-        print("####################### db add okay final..................")
 
         return repository
-
-
-
-
 
 
 
@@ -388,7 +379,12 @@ class RepositoryService:
         
         
 
-    def cleanup_repository_if_orphan(self, user_id: str, repository_id: str) -> None:
+    def cleanup_repository_if_orphan(
+        self, 
+        user_id: str, 
+        repository_id: str
+    ) -> None:
+        
         if not self.is_repository_orphan(user_id, repository_id):
             return
 
@@ -396,21 +392,30 @@ class RepositoryService:
         if repository is None:
             return
         
-        repository_files = self.get_repository_files(repository_id)
-        for repo_file in repository_files:
-            self.db.delete(repo_file)
-            
-        index_jobs = self.get_index_jobs(repository_id)
-        for job in index_jobs:
-            self.db.delete(job)
-            
-        repo_branches = self.get_repository_branches(repository_id)
-        for branch in repo_branches:
-            self.db.delete(branch)
+        # Delete all related data in bulk (single queries each)
         
-        # remove repo data from local storage
+        # 1. Delete repository files
+        stmt = delete(RepositoryFile).where(
+            RepositoryFile.repository_id == repository_id
+        )
+        self.db.execute(stmt)
+        
+        # 2. Delete indexing jobs
+        stmt = delete(IndexingJob).where(
+            IndexingJob.repository_id == repository_id
+        )
+        self.db.execute(stmt)
+            
+        # 3. Delete repository branches
+        stmt = delete(RepositoryBranch).where(
+            RepositoryBranch.repository_id == repository_id
+        )
+        self.db.execute(stmt)
+        
+        # 4. Remove repo data from local storage
         self.storage.delete_repository_storage(user_id, repository_id)
         
+        # 5. Delete the repository itself
         self.db.delete(repository)
         self.db.flush()
 

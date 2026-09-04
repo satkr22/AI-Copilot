@@ -11,8 +11,6 @@ from app.models.indexing_jobs import JobStatus
 class IndexingJobResponse(BaseModel):
     id: str
     repository_id: str
-    branch_name: str 
-    commit_hash: str | None
     status: JobStatus
     started_at: datetime 
     completed_at: datetime | None

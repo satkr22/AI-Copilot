@@ -73,9 +73,6 @@ class IndexingService:
             # --------------------------------------------------------------
             for branch in branches:
 
-                job.branch_name = branch.branch_name
-                job.commit_hash = branch.latest_commit_hash
-
                 # Remove previous indexed snapshot for this branch
                 (
                     self.db.query(RepositoryFile)
@@ -127,6 +124,7 @@ class IndexingService:
 
                 # Branch indexed successfully
                 branch.indexed_at = datetime.now(timezone.utc)
+                
 
             # --------------------------------------------------------------
             # Repository indexed successfully

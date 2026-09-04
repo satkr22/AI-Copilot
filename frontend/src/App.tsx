@@ -39,8 +39,6 @@ type Repository = {
 type IndexingJob = {
   id: string;
   repository_id: string;
-  branch_name: string;
-  commit_hash: string | null;
   status: "pending" | "running" | "completed" | "failed";
   started_at: string;
   completed_at: string | null;
@@ -374,9 +372,7 @@ export default function App() {
 
     await refreshDashboard();
 
-    setMessage(
-      `Indexing completed (${job.branch_name} • ${job.status})`
-    );
+    setMessage(`Indexing ${job.status}`);
   };
 
 
