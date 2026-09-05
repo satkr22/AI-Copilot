@@ -33,20 +33,25 @@ class FileDiscoveryService:
         commit_hash: str,
     ) -> dict[str, int]:
 
-        result = subprocess.run(
-            [
-                "git",
-                "-C",
-                str(repository_root),
-                "ls-tree",
-                "-r",
-                "--name-only",
-                commit_hash,
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
+        try:
+            result = subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(repository_root),
+                    "ls-tree",
+                    "-r",
+                    "--name-only",
+                    commit_hash,
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+        except subprocess.CalledProcessError as e:
+            print("STDERR:", e.stderr)
+            print("STDOUT:", e.stdout)
+            raise  
 
         files = {}
 

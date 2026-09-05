@@ -85,8 +85,11 @@ class RepositoryService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Repository not found"
             )
-
-        return self.indexing.index_repository(repository)
+        try:
+            return self.indexing.index_repository(repository)
+        except Exception as e:
+            print(str(e))
+            raise 
 
     
     

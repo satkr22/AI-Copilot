@@ -136,7 +136,8 @@ class IndexingService:
 
             self.db.commit()
             self.db.refresh(job)
-
+            
+            print("indexing done")
             return job
 
         except Exception as exc:

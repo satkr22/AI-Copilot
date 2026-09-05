@@ -87,7 +87,7 @@ class RepositoryFile(Base):
     parse_status: Mapped[ParseStatus] = mapped_column(
         SQLEnum(ParseStatus),
         nullable=False,
-        default=ParseStatus.PENDING
+        default=ParseStatus.PENDING,
     )
     
     parse_error: Mapped[str | None] = mapped_column(
