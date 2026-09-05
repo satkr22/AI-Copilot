@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import uuid4
 from enum import Enum
 from sqlalchemy import (
@@ -79,7 +79,7 @@ class RepositorySymbol(Base):
     )
     
     # Symbol Information
-    name: Mapped[str] = mapped_column(
+    name: Mapped[str | None] = mapped_column(
         String(255), 
         nullable=False
     )
@@ -109,7 +109,7 @@ class RepositorySymbol(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        default=datetime.now
+        default=datetime.now(tz=timezone.utc)
     )
     
     # Relationships (optional)

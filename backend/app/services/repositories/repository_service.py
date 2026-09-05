@@ -16,6 +16,8 @@ from app.models.repository import Repository, SourceType
 from app.models.repository_branch import RepositoryBranch
 from app.models.repository_file import RepositoryFile
 from app.models.indexing_jobs import IndexingJob
+from app.models.repository_symbol import RepositorySymbol
+from app.models.repository_import import RepositoryImport
 
 from app.schemas.repository import GithubRepositoryCreate
 
@@ -401,27 +403,39 @@ class RepositoryService:
         # Delete all related data in bulk (single queries each)
         
         # 1. Delete repository files
+        stmt = delete(RepositoryImport).where(
+            RepositoryImport.repository_id == repository_id
+        )
+        self.db.execute(stmt)
+        
+        # 2. Delete repository symbols
+        stmt = delete(RepositorySymbol).where(
+            RepositorySymbol.repository_id == repository_id
+        )
+        self.db.execute(stmt)
+        
+        # 3. Delete repository files
         stmt = delete(RepositoryFile).where(
             RepositoryFile.repository_id == repository_id
         )
         self.db.execute(stmt)
         
-        # 2. Delete indexing jobs
+        # 4. Delete indexing jobs
         stmt = delete(IndexingJob).where(
             IndexingJob.repository_id == repository_id
         )
         self.db.execute(stmt)
             
-        # 3. Delete repository branches
+        # 5. Delete repository branches
         stmt = delete(RepositoryBranch).where(
             RepositoryBranch.repository_id == repository_id
         )
         self.db.execute(stmt)
         
-        # 4. Remove repo data from local storage
+        # 6. Remove repo data from local storage
         self.storage.delete_repository_storage(user_id, repository_id)
         
-        # 5. Delete the repository itself
+        # 7. Delete the repository itself
         self.db.delete(repository)
         self.db.flush()
 

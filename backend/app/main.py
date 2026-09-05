@@ -8,7 +8,7 @@ from app.api.routes.repository import router as repository_router
 
 from app.db.init_db import init_db
 
-init_db()
+# init_db()
 
 app = FastAPI()
 

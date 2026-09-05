@@ -6,15 +6,22 @@ from sqlalchemy.orm import Session
 from app.models.repository import Repository
 from app.models.repository_branch import RepositoryBranch
 from app.models.indexing_jobs import IndexingJob, JobStatus
-from app.models.repository_file import RepositoryFile
+from app.models.repository_file import RepositoryFile, ParseStatus
+from app.models.repository_symbol import RepositorySymbol, SymbolKind, SymbolLanguage
+from app.models.repository_import import RepositoryImport, ImportLanguage
+
 
 from app.services.repositories.file_discovery_service import FileDiscoveryService
+from app.services.indexing.parser_service import ParserService
+from app.services.indexing.language_detector import detect_language
+from app.services.indexing.dto import SymbolDTO, ImportDTO, ParseResult
 
 
 class IndexingService:
     def __init__(self, db: Session):
         self.db = db
         self.discovery = FileDiscoveryService(db)
+        self.parser = ParserService()
 
     def index_repository(
         self,
@@ -73,7 +80,25 @@ class IndexingService:
             # --------------------------------------------------------------
             for branch in branches:
 
-                # Remove previous indexed snapshot for this branch
+                # Remove previous parsed snapshot for this branch from repository_symbols
+                (
+                    self.db.query(RepositorySymbol)
+                    .filter(
+                        RepositorySymbol.repository_branch_id == branch.id
+                    )
+                    .delete(synchronize_session=False)
+                )
+                
+                # Remove previous parsed snapshot for this branch from repository_imports
+                (
+                    self.db.query(RepositoryImport)
+                    .filter(
+                        RepositoryImport.repository_branch_id == branch.id
+                    )
+                    .delete(synchronize_session=False)
+                )
+
+                # Remove previous indexed snapshot for this branch from repository_files
                 (
                     self.db.query(RepositoryFile)
                     .filter(
@@ -81,7 +106,7 @@ class IndexingService:
                     )
                     .delete(synchronize_session=False)
                 )
-
+                
                 discovered_files = self.discovery.discover(
                     repository_root=repository_root,
                     branch_name=branch.branch_name,
@@ -102,25 +127,27 @@ class IndexingService:
                         indexed_at=datetime.now(timezone.utc),
                         created_at=datetime.now(timezone.utc),
                     )
+                    # parsestaus, pasrseerror, parsedat
 
                     self.db.add(repo_file)
+                    self.db.flush()
 
                     # ------------------------------------------------------
                     # Read file contents for parsing / chunking later.
                     # ------------------------------------------------------
-                    #
-                    # content = self.discovery.read_file(
-                    #     repository_root=repository_root,
-                    #     commit_hash=branch.latest_commit_hash,
-                    #     relative_path=relative_path,
-                    # )
-                    #
-                    # self._index_file(
-                    #     repository=repository,
-                    #     branch=branch,
-                    #     repo_file=repo_file,
-                    #     content=content,
-                    # )
+                    
+                    content = self.discovery.read_file(
+                        repository_root=repository_root,
+                        commit_hash=branch.latest_commit_hash,
+                        relative_path=relative_path,
+                    )
+                    
+                    self._index_file(
+                        repository=repository,
+                        branch=branch,
+                        repo_file=repo_file,
+                        content=content,
+                    )
 
                 # Branch indexed successfully
                 branch.indexed_at = datetime.now(timezone.utc)
@@ -164,4 +191,94 @@ class IndexingService:
         repo_file: RepositoryFile,
         content: bytes,
     ) -> None:
-        pass
+        # ----------------------------------------------------------------------
+        # Parsing
+        # ----------------------------------------------------------------------
+        
+        repo_file.parse_status = ParseStatus.PROCESSING
+        
+        # language detection
+        language = detect_language(repo_file.path)
+        if language is None:
+            repo_file.parsed_at = datetime.now(tz=timezone.utc)
+            repo_file.parse_status = ParseStatus.SKIPPED
+            return
+        
+        repo_file.language = language
+        
+    
+        # parse source code file
+        try:
+            source = content.decode("utf-8", errors="replace")
+            parse_result = self.parser.parse(language, source)
+
+            # enter each symbol in db 'repository_symbols' table
+            self._save_symbols(
+                repository, 
+                branch, 
+                repo_file, 
+                parse_result.symbols
+            )
+                
+            # enter each import in db 'repository_imports' table
+            self._save_imports(
+                repository, 
+                branch, 
+                repo_file, 
+                parse_result.imports
+            )
+                
+            repo_file.parsed_at = datetime.now(timezone.utc)
+            repo_file.parse_status = ParseStatus.COMPLETED
+             
+        except Exception as e:
+            repo_file.parse_status = ParseStatus.FAILED
+            repo_file.parse_error = str(e)[:500]
+            return
+    
+    def _save_symbols(
+        self,
+        repository: Repository,
+        branch: RepositoryBranch,
+        repo_file: RepositoryFile,
+        symbols: list[SymbolDTO]
+    ):
+        for symbol in symbols:
+                     
+            file_symbol = RepositorySymbol(
+                repository_id = repository.id,
+                repository_branch_id = branch.id,
+                repository_file_id = repo_file.id,
+                name = symbol.name,
+                kind = symbol.kind,
+                language = symbol.language,
+                start_line = symbol.start_line,
+                end_line = symbol.end_line,
+                created_at = datetime.now(tz=timezone.utc)
+            )
+            self.db.add(file_symbol)
+            
+    
+    def _save_imports(
+        self,
+        repository: Repository,
+        branch: RepositoryBranch,
+        repo_file: RepositoryFile,
+        imports: list[ImportDTO]
+    ):
+        for imprt in imports:
+            file_import = RepositoryImport(
+                repository_id = repository.id,
+                repository_branch_id = branch.id,
+                repository_file_id = repo_file.id,
+                language = imprt.language,
+                import_path = imprt.import_path,
+                import_name = imprt.import_name,
+                line_number = imprt.line_number,
+                created_at = datetime.now(tz=timezone.utc)
+            )
+            self.db.add(file_import)
+            
+        
+        
+        

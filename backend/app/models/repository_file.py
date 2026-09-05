@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from uuid import uuid4
 from sqlalchemy import (
@@ -109,7 +109,7 @@ class RepositoryFile(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        default=datetime.now
+        default=datetime.now(tz=timezone.utc)
     )
     
     # Relationships (optional)
