@@ -13,8 +13,8 @@ done
 
 echo "PostgreSQL is ready"
 
-echo "Creating tables..."
-python -m app.db.init_db
+echo "Running database migrations..."
+alembic upgrade head
 
 echo "Starting FastAPI..."
 

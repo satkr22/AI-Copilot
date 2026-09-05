@@ -1,4 +1,5 @@
 from datetime import datetime
+from enum import Enum
 from uuid import uuid4
 from sqlalchemy import (
     String,
@@ -6,11 +7,20 @@ from sqlalchemy import (
     ForeignKey,
     BigInteger,
     UniqueConstraint,
-    Index
+    Text,
+    Index,
+    Enum as SQLEnum
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
+
+class ParseStatus(str, Enum):
+    PENDING = "pending"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    SKIPPED = "skipped"
 
 class RepositoryFile(Base):
     __tablename__ = "repository_files"
@@ -73,6 +83,23 @@ class RepositoryFile(Base):
         nullable=True
     )
     
+    # Parse Status Fields
+    parse_status: Mapped[ParseStatus] = mapped_column(
+        SQLEnum(ParseStatus),
+        nullable=False,
+        default=ParseStatus.PENDING
+    )
+    
+    parse_error: Mapped[str | None] = mapped_column(
+        Text,  # Use Text for error messages as they can be long
+        nullable=True
+    )
+    
+    parsed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True
+    )
+    
     # Timestamps
     indexed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
@@ -94,4 +121,14 @@ class RepositoryFile(Base):
     branch: Mapped["RepositoryBranch"] = relationship(  # type: ignore
         "RepositoryBranch",
         back_populates="files"  
+    )
+    
+    symbols: Mapped[list["RepositorySymbol"]] = relationship( # type: ignore
+        "RepositorySymbol",
+        back_populates="file"
+    )
+    
+    imports: Mapped[list["RepositoryImport"]] = relationship( # type: ignore
+        "RepositoryImport",
+        back_populates="file"
     )

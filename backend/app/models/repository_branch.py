@@ -65,3 +65,13 @@ class RepositoryBranch(Base):
         "RepositoryFile",
         back_populates="branch"
     )
+    
+    symbols: Mapped[list["RepositorySymbol"]] = relationship( #type: ignore
+        "RepositorySymbol",
+        back_populates="branch"
+    )
+    
+    imports: Mapped[list["RepositoryImport"]] = relationship( #type: ignore
+        "RepositoryImport",
+        back_populates="branch"
+    )
