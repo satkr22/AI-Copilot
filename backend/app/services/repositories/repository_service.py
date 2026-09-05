@@ -299,6 +299,9 @@ class RepositoryService:
 
         self.db.commit()
         self.db.refresh(repository)
+        
+        # repository is indexed 
+        self.indexing.index_repository(repository)
 
         return repository
 
