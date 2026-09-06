@@ -6,6 +6,7 @@ from .indexing_jobs import IndexingJob
 from .repository_file import RepositoryFile
 from .repository_symbol import RepositorySymbol
 from .repository_import import RepositoryImport
+from .repository_chunk import RepositoryChunk
 
 
 __all__ = [
@@ -16,5 +17,6 @@ __all__ = [
     "IndexingJob", 
     "RepositoryFile",
     "RepositorySymbol",
-    "RepositoryImport"
+    "RepositoryImport",
+    "RepositoryChunk"
 ]

@@ -17,6 +17,8 @@ done
 echo "PostgreSQL is ready"
 
 echo "Running database migrations..."
+
+# migrate db by alembic using upgrade head
 alembic upgrade head
 
 echo "Starting FastAPI..."

@@ -10,6 +10,16 @@ EXTENSION_TO_LANGUAGE = {
     '.jsx': 'javascript',
     '.java': 'java',
     '.c': 'c',
+    '.cpp': 'cpp',
+    '.cc': 'cpp',
+    '.cxx': 'cpp',
+    '.h': 'cpp',
+    '.hpp': 'cpp',
+    '.go': 'go',
+    '.rs': 'rust',
+    '.kt': 'kotlin',
+    '.kts': 'kotlin',
+    '.swift': 'swift',
 }
 
 

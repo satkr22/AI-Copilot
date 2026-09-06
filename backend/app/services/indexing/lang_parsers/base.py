@@ -1,12 +1,12 @@
-from abc import ABC, abstractmethod
+# from abc import ABC, abstractmethod
 
-from tree_sitter import Tree
+# from tree_sitter import Tree
 
-from app.services.indexing.dto import ParseResult
+# from app.services.indexing.intelligence.models import ParseResultDTO
 
 
-class BaseLanguageParser(ABC):
+# class BaseLanguageParser(ABC):
 
-    @abstractmethod
-    def extract(self, tree: Tree, source: bytes) -> ParseResult:
-        pass
+#     @abstractmethod
+#     def extract(self, tree: Tree, source: bytes) -> ParseResultDTO:
+#         pass

@@ -19,7 +19,6 @@ from app.db.base import Base
 class ChunkProvider(str, Enum):
     JCODE = "jcode"
     SYMLENS = "symlens"
-    TREE_SITTER = "tree_sitter"
 
 
 class ChunkType(str, Enum):

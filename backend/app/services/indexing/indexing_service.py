@@ -9,12 +9,14 @@ from app.models.indexing_jobs import IndexingJob, JobStatus
 from app.models.repository_file import RepositoryFile, ParseStatus
 from app.models.repository_symbol import RepositorySymbol, SymbolKind, SymbolLanguage
 from app.models.repository_import import RepositoryImport, ImportLanguage
+from app.models.repository_chunk import RepositoryChunk, ChunkProvider, ChunkType
 
 
 from app.services.indexing.discovery.file_discovery_service import FileDiscoveryService
 from app.services.indexing.parser.parser_service import ParserService
 from app.services.indexing.language_detector import detect_language
-from app.services.indexing.dto import SymbolDTO, ImportDTO, ParseResult
+from app.services.indexing.intelligence.models import SymbolDTO, ImportDTO, CodeChunkDTO, ParseResultDTO
+from app.services.indexing.intelligence.router import IntelligenceRouter
 
 
 class IndexingService:
@@ -22,6 +24,8 @@ class IndexingService:
         self.db = db
         self.discovery = FileDiscoveryService(db)
         self.parser = ParserService()
+        self.provider = IntelligenceRouter()
+        
 
     def index_repository(
         self,
@@ -206,26 +210,47 @@ class IndexingService:
         
         repo_file.language = language
         
-    
+        # router
+        lang_provider = self.provider.get_provider(language)
+        if lang_provider is None:
+            # unsupported language
+            return
+        
         # parse source code file
         try:
             source = content.decode("utf-8", errors="replace")
-            parse_result = self.parser.parse(language, source)
+            cst_tree = self.parser.parse_tree(language, source)
+            
+            symbols = lang_provider.extract_symbols(source, language)
+            imports = lang_provider.extract_imports(source, language)
+            chunks = lang_provider.create_chunks(source, language, symbols)
+            
+            parse_result = ParseResultDTO(symbols, imports, chunks)
 
             # enter each symbol in db 'repository_symbols' table
-            self._save_symbols(
+            orm_symbols = self._save_symbols(
                 repository, 
                 branch, 
                 repo_file, 
-                parse_result.symbols
+                symbols
             )
+            self.db.flush()
                 
             # enter each import in db 'repository_imports' table
             self._save_imports(
                 repository, 
                 branch, 
                 repo_file, 
-                parse_result.imports
+                imports
+            )
+            
+            # enter each chunk in db 'repository_chunks' table
+            self._save_chunks(
+                repository,              
+                branch, 
+                repo_file, 
+                orm_symbols,
+                chunks
             )
                 
             repo_file.parsed_at = datetime.now(timezone.utc)
@@ -242,7 +267,8 @@ class IndexingService:
         branch: RepositoryBranch,
         repo_file: RepositoryFile,
         symbols: list[SymbolDTO]
-    ):
+    ) -> list[RepositorySymbol]:
+        orm_symbols = []
         for symbol in symbols:
                      
             file_symbol = RepositorySymbol(
@@ -257,6 +283,8 @@ class IndexingService:
                 created_at = datetime.now(tz=timezone.utc)
             )
             self.db.add(file_symbol)
+            orm_symbols.append(file_symbol)
+        return orm_symbols
             
     
     def _save_imports(
@@ -265,7 +293,7 @@ class IndexingService:
         branch: RepositoryBranch,
         repo_file: RepositoryFile,
         imports: list[ImportDTO]
-    ):
+    ) -> None:
         for imprt in imports:
             file_import = RepositoryImport(
                 repository_id = repository.id,
@@ -278,6 +306,46 @@ class IndexingService:
                 created_at = datetime.now(tz=timezone.utc)
             )
             self.db.add(file_import)
+            
+            
+    def _save_chunks(
+        self,
+        repository: Repository,
+        branch: RepositoryBranch,
+        repo_file: RepositoryFile,
+        orm_symbols: list[RepositorySymbol],
+        chunks: list[CodeChunkDTO]
+    ) -> None:
+        
+        symbol_map = {
+            (symbol.name, symbol.kind, symbol.start_line): symbol
+            for symbol in orm_symbols
+        }
+        
+        for chunk in chunks:
+            
+            if chunk.chunk_type == ChunkType.FILE:
+                _symbol_id = None
+            else:
+                orm_symbol = symbol_map[
+                    (chunk.symbol_name, SymbolKind(chunk.chunk_type), chunk.start_line)
+                ]
+                _symbol_id = orm_symbol.id
+                
+            chunk = RepositoryChunk(
+                repository_id = repository.id,
+                repository_branch_id = branch.id,
+                repository_file_id = repo_file.id,
+                symbol_id = _symbol_id,
+                provider = ChunkProvider(chunk.provider),
+                chunk_type = ChunkType(chunk.chunk_type),
+                content = chunk.content,
+                start_line = chunk.start_line,
+                end_line = chunk.end_line,
+                token_count = chunk.token_count,
+                created_at = datetime.now(tz=timezone.utc)
+            )
+            self.db.add(chunk)
             
         
         

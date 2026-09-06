@@ -2,6 +2,9 @@ services:
   backend:
     build: ./backend
     container_name: fastapi_backend
+    user: "${UID}:${GID}"
+    environment:
+      HOME: /tmp
     env_file:
       - .env
     ports:
