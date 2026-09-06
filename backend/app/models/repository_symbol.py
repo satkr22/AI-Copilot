@@ -127,3 +127,9 @@ class RepositorySymbol(Base):
         "RepositoryFile",
         back_populates="symbols"  
     )
+    
+    chunks: Mapped["RepositoryChunk"] = relationship(  # type: ignore
+        "RepositoryChunk",
+        back_populates="symbol",
+        cascade="all, delete-orphan"  
+    )

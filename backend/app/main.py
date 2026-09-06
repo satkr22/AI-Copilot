@@ -6,7 +6,7 @@ from app.api.routes.user import router as user_router
 from app.api.routes.project import router as project_router
 from app.api.routes.repository import router as repository_router
 
-from app.db.init_db import init_db
+# from app.db.init_db import init_db
 
 # init_db()
 

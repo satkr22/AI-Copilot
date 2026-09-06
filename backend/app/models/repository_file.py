@@ -132,3 +132,9 @@ class RepositoryFile(Base):
         "RepositoryImport",
         back_populates="file"
     )
+    
+    chunks: Mapped[list["RepositoryChunk"]] = relationship( # type: ignore
+        "RepositoryChunk",
+        back_populates="file",
+        cascade="all, delete-orphan"
+    )

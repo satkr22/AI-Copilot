@@ -75,3 +75,9 @@ class RepositoryBranch(Base):
         "RepositoryImport",
         back_populates="branch"
     )
+    
+    chunks: Mapped[list["RepositoryChunk"]] = relationship( #type: ignore
+        "RepositoryChunk",
+        back_populates="branch",
+        cascade="all, delete-orphan"
+    )
