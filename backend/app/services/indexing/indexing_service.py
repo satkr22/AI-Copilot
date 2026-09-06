@@ -11,8 +11,8 @@ from app.models.repository_symbol import RepositorySymbol, SymbolKind, SymbolLan
 from app.models.repository_import import RepositoryImport, ImportLanguage
 
 
-from app.services.repositories.file_discovery_service import FileDiscoveryService
-from app.services.indexing.parser_service import ParserService
+from app.services.indexing.discovery.file_discovery_service import FileDiscoveryService
+from app.services.indexing.parser.parser_service import ParserService
 from app.services.indexing.language_detector import detect_language
 from app.services.indexing.dto import SymbolDTO, ImportDTO, ParseResult
 

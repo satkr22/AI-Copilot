@@ -1,7 +1,7 @@
 from tree_sitter import Parser
 from tree_sitter_language_pack import get_language
-from app.services.indexing.parsers.python_parser import PythonParser
-from app.services.indexing.parsers.ts_parser import TypeScriptParser
+from app.services.indexing.lang_parsers.python_parser import PythonParser
+from app.services.indexing.lang_parsers.ts_parser import TypeScriptParser
 from app.services.indexing.dto import ParseResult
 
 class ParserService:

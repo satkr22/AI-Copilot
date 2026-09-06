@@ -1,7 +1,7 @@
 from tree_sitter import Node, Tree
 
 from app.services.indexing.dto import ImportDTO, ParseResult, SymbolDTO
-from app.services.indexing.parsers.base import BaseLanguageParser
+from app.services.indexing.lang_parsers.base import BaseLanguageParser
 
 
 class PythonParser(BaseLanguageParser):

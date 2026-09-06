@@ -1,7 +1,7 @@
 from tree_sitter import Tree
 
 from app.services.indexing.dto import ParseResult
-from app.services.indexing.parsers.base import BaseLanguageParser
+from app.services.indexing.lang_parsers.base import BaseLanguageParser
 
 
 class TypeScriptParser(BaseLanguageParser):
