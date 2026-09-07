@@ -28,6 +28,8 @@ class ImportLanguage(str, Enum):
     RUBY = "ruby"
     SWIFT = "swift"
     KOTLIN = "kotlin"
+    BASH = "bash"
+    SQL = "sql"
 
 
 class RepositoryImport(Base):
@@ -39,6 +41,7 @@ class RepositoryImport(Base):
             "repository_file_id",
             "import_path",
             "import_name",
+            "start_byte",
             name="uq_repo_file_import_path_name"
         ),
         # # For faster queries on common filters
@@ -92,6 +95,31 @@ class RepositoryImport(Base):
     # Position Information
     line_number: Mapped[int | None] = mapped_column(
         Integer,
+        nullable=True
+    )
+
+    alias: Mapped[str | None] = mapped_column(
+        String(255), 
+        nullable=True
+    )
+    
+    is_relative: Mapped[bool] = mapped_column(
+        default=False, 
+        nullable=False
+    )
+    
+    start_byte: Mapped[int | None] = mapped_column(
+        Integer, 
+        nullable=True
+    )
+    
+    end_byte: Mapped[int | None] = mapped_column(
+        Integer, 
+        nullable=True
+    )
+    
+    raw_statement: Mapped[str | None] = mapped_column(
+        String, 
         nullable=True
     )
     

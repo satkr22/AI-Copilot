@@ -10,6 +10,7 @@ from tree_sitter_language_pack import get_language
 class ParseTree:
     tree: Tree
     source_bytes: bytes
+    language: Language
 
 
 class ParserService:
@@ -17,6 +18,7 @@ class ParserService:
 
     def __init__(self) -> None:
         self._parsers: dict[str, Parser] = {}
+        self._languages: dict[str, Language] = {}
 
     def _get_parser(self, language: str) -> Parser:
         """
@@ -46,6 +48,7 @@ class ParserService:
         parser = Parser(language_obj)
 
         self._parsers[language] = parser
+        self._languages[language] = language_obj
 
         return parser
 
@@ -84,4 +87,5 @@ class ParserService:
         return ParseTree(
             tree=tree,
             source_bytes=source_bytes,
+            language=self._languages[language.strip().lower()],
         )

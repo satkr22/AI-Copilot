@@ -13,6 +13,7 @@ SKIP_DIRS = {
     ".next",
     ".venv",
     "venv",
+    "vendor",
 }
 
 SKIP_FILES = {
@@ -68,19 +69,56 @@ class FileDiscoveryService:
 
             if path.name in SKIP_FILES:
                 continue
-
-            file_size = self._get_file_size(
-                repository_root,
-                commit_hash,
-                relative_path,
-            )
-
-            if file_size > MAX_FILE_SIZE:
+            
+            try: 
+                if self._is_gitignored(repository_root, relative_path):
+                    continue
+            except Exception:
                 continue
+            
+            try:
+                file_size = self._get_file_size(
+                    repository_root,
+                    commit_hash,
+                    relative_path,
+                )
 
+                if file_size > MAX_FILE_SIZE:
+                    continue
+            except Exception:
+                continue
+            
+            # Avoid feeding binary blobs (images, archives, generated assets)
+            # into a text parser. Git keeps the snapshot authoritative, so the
+            # check is performed against the selected commit rather than the
+            # mutable working tree.
+            try:
+                if self._is_binary(repository_root, commit_hash, relative_path):
+                    continue
+            except Exception:
+                continue
+            
             files[relative_path] = file_size
 
         return files
+
+    def _is_binary(self, repository_root: Path, commit_hash: str, relative_path: str) -> bool:
+        result = subprocess.run(
+            ["git", "-C", str(repository_root), "show", f"{commit_hash}:{relative_path}"],
+            check=True,
+            capture_output=True,
+        )
+        sample = result.stdout[:8192]
+        return b"\x00" in sample
+
+    def _is_gitignored(self, repository_root: Path, relative_path: str) -> bool:
+        result = subprocess.run(
+            ["git", "-C", str(repository_root), "check-ignore", "--no-index", "-q", "--", relative_path],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        return result.returncode == 0
 
     def read_file(
         self,

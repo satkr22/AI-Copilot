@@ -18,6 +18,7 @@ from app.models.repository_file import RepositoryFile
 from app.models.indexing_jobs import IndexingJob
 from app.models.repository_symbol import RepositorySymbol
 from app.models.repository_import import RepositoryImport
+from app.models.repository_chunk import RepositoryChunk
 
 from app.schemas.repository import GithubRepositoryCreate
 
@@ -401,6 +402,12 @@ class RepositoryService:
             return
         
         # Delete all related data in bulk (single queries each)
+        
+        # 0. Delete repository chunks
+        stmt = delete(RepositoryChunk).where(
+            RepositoryChunk.repository_id == repository_id
+        )
+        self.db.execute(stmt)
         
         # 1. Delete repository files
         stmt = delete(RepositoryImport).where(

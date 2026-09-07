@@ -10,6 +10,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    ARRAY,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -19,6 +20,7 @@ from app.db.base import Base
 class ChunkProvider(str, Enum):
     JCODE = "jcode"
     SYMLENS = "symlens"
+    TREE_SITTER = "tree-sitter"
 
 
 class ChunkType(str, Enum):
@@ -26,6 +28,12 @@ class ChunkType(str, Enum):
     CLASS = "class"
     FUNCTION = "function"
     METHOD = "method"
+    INTERFACE = "interface"
+    STRUCT = "struct"
+    ENUM = "enum"
+    TYPE_ALIAS = "type_alias"
+    GAP = "gap"
+    MERGED = "merged"
 
 
 class RepositoryChunk(Base):
@@ -34,9 +42,13 @@ class RepositoryChunk(Base):
     __table_args__ = (
         UniqueConstraint(
             "repository_file_id",
+            "content_hash",
+            "start_byte",
+            "end_byte",
+            "origin",
             "symbol_id",
-            "chunk_type",
-            name="uq_repo_chunk_file_symbol_type",
+            "part_index",
+            name="uq_repo_chunk_file_identity",
         ),
     )
 
@@ -110,6 +122,65 @@ class RepositoryChunk(Base):
     token_count: Mapped[int] = mapped_column(
         Integer,
         nullable=False,
+    )
+
+    origin: Mapped[str] = mapped_column(
+        String(40), 
+        nullable=False, 
+        default="query_symbol"
+    )
+    
+    symbol_ids: Mapped[list[str]] = mapped_column(
+        ARRAY(String), 
+        nullable=False, 
+        default=list
+    )
+    
+    scope_chain: Mapped[list[str]] = mapped_column(
+        ARRAY(String), 
+        nullable=False, 
+        default=list
+    )
+    
+    start_byte: Mapped[int | None] = mapped_column(
+        Integer, 
+        nullable=True
+    )
+    
+    end_byte: Mapped[int | None] = mapped_column(
+        Integer, 
+        nullable=True
+    )
+    
+    enriched_content: Mapped[str | None] = mapped_column(
+        Text, 
+        nullable=True
+    )
+    
+    contextual_summary: Mapped[str | None] = mapped_column(
+        Text, 
+        nullable=True
+    )
+    
+    is_partial: Mapped[bool] = mapped_column(
+        default=False, 
+        nullable=False
+    )
+    
+    part_index: Mapped[int | None] = mapped_column(
+        Integer, 
+        nullable=True
+    )
+    
+    part_total: Mapped[int | None] = mapped_column(
+        Integer, 
+        nullable=True
+    )
+    
+    content_hash: Mapped[str] = mapped_column(
+        String(64), 
+        nullable=False, 
+        default=""
     )
 
     # ------------------------------------------------------------------

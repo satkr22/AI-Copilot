@@ -18,6 +18,10 @@ class SymbolKind(str, Enum):
     FUNCTION = "function"
     CLASS = "class"
     METHOD = "method"
+    INTERFACE = "interface"
+    STRUCT = "struct"
+    ENUM = "enum"
+    TYPE_ALIAS = "type_alias"
 
 
 class SymbolLanguage(str, Enum):
@@ -34,6 +38,8 @@ class SymbolLanguage(str, Enum):
     RUBY = "ruby"
     SWIFT = "swift"
     KOTLIN = "kotlin"
+    BASH = "bash"
+    SQL = "sql"
 
 
 class RepositorySymbol(Base):
@@ -45,6 +51,7 @@ class RepositorySymbol(Base):
             "repository_file_id",
             "name",
             "kind",
+            "start_byte",
             name="uq_repo_file_symbol_name_kind"
         ),
         # # For faster queries on common filters
@@ -103,6 +110,40 @@ class RepositorySymbol(Base):
     end_line: Mapped[int | None] = mapped_column(
         Integer,
         nullable=False
+    )
+
+    qualified_name: Mapped[str | None] = mapped_column(
+        String(1000), 
+        nullable=True
+    )
+    
+    parent_symbol_id: Mapped[str | None] = mapped_column(
+        ForeignKey("repository_symbols.id"), 
+        nullable=True
+    
+    )
+    start_byte: Mapped[int | None] = mapped_column(
+        Integer, 
+        nullable=True
+    )
+    
+    end_byte: Mapped[int | None] = mapped_column(
+        Integer, 
+        nullable=True
+    )
+    signature: Mapped[str | None] = mapped_column(
+        String(2000), 
+        nullable=True
+    
+    )
+    docstring: Mapped[str | None] = mapped_column(
+        String, 
+        nullable=True
+    )
+    
+    content_hash: Mapped[str | None] = mapped_column(
+        String(64), 
+        nullable=True
     )
     
     # Timestamps

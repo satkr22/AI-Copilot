@@ -82,6 +82,11 @@ class RepositoryFile(Base):
         String(100),  # e.g., "Python", "JavaScript", "Go"
         nullable=True
     )
+
+    content_hash: Mapped[str | None] = mapped_column(
+        String(64),
+        nullable=True
+    )
     
     # Parse Status Fields
     parse_status: Mapped[ParseStatus] = mapped_column(

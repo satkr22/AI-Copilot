@@ -33,7 +33,8 @@ def upgrade() -> None:
         """
         CREATE TYPE chunkprovider AS ENUM (
             'JCODE',
-            'SYMLENS'
+            'SYMLENS',
+            'TREE_SITTER'
         )
         """
     )
@@ -69,7 +70,6 @@ def downgrade() -> None:
         CREATE TYPE chunkprovider AS ENUM (
             'JCODE',
             'SYMLENS',
-            'TREE_SITTER'
         )
         """
     )
