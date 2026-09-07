@@ -19,6 +19,7 @@ lerna-debug.log*
 node_modules
 zz.py
 xx.py
+res.txt
 dist
 dist-ssr
 *.local
