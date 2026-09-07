@@ -10,7 +10,7 @@ from app.models.repository_branch import RepositoryBranch
 from app.models.repository_file import ParseStatus, RepositoryFile
 from app.services.indexing.chunking.cast_chunker import CastChunker
 from app.services.indexing.extraction.query_extractor import QueryExtractor
-from app.services.indexing.intelligence.models import ParseResultDTO
+from app.services.indexing.dto_models.models import ParseResultDTO
 from app.services.indexing.parser.parser_service import ParserService
 from app.services.indexing.persistence import IndexingPersistence
 

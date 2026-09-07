@@ -8,7 +8,7 @@ from tree_sitter import Node
 
 from app.services.indexing.chunking.tokenizer import CodeTokenCounter
 from app.services.indexing.extraction.query_extractor import RawExtractionResult
-from app.services.indexing.intelligence.models import (
+from app.services.indexing.dto_models.models import (
     ChunkOrigin,
     ChunkType,
     CodeChunkDTO,

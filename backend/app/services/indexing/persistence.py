@@ -17,7 +17,7 @@ from app.models.repository_symbol import (
     SymbolKind as ORMSymbolKind,
     SymbolLanguage,
 )
-from app.services.indexing.intelligence.models import ParseResultDTO
+from app.services.indexing.dto_models.models import ParseResultDTO
 
 
 class IndexingPersistence:

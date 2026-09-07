@@ -8,7 +8,7 @@ from uuid import NAMESPACE_URL, uuid5
 
 from tree_sitter import Language, Node, Tree
 
-from app.services.indexing.intelligence.models import ImportDTO, SymbolDTO, SymbolKind
+from app.services.indexing.dto_models.models import ImportDTO, SymbolDTO, SymbolKind
 
 QUERY_DIR = Path(__file__).resolve().parent.parent / "queries"
 
