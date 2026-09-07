@@ -70,6 +70,7 @@ class CastChunker:
             else:
                 chunks.extend(self._split_symbol(item, result))
         return self._deduplicate(self._merge_adjacent(chunks, result))
+        # return self._deduplicate(chunks)
 
     def _gap_ranges(
         self, result: RawExtractionResult, symbols: list[SymbolDTO]

@@ -20,6 +20,8 @@ class ChunkDBTest():
                     f.write(f"chunk-repo-id: {row.id}\n")
                     f.write(f"chunk-repo-url: {row.repository.source_url}\n")
                     f.write(f"chunk-symbol_ids: {row.symbol_ids}\n")
+                    f.write(f"chunk-symbol_name: {row.symbol.name if row.symbol is not None else None}\n")
+                    f.write(f"chunk-symbol_name_parent: {row.symbol.parent_symbol_id if row.symbol is not None else None}\n")
                     f.write(f"chunk-type: {row.chunk_type}\n")
                     f.write(f"chunk-origin: {row.origin}\n")
                     f.write(f"chunk-provider: {row.provider}\n")
