@@ -1,491 +1,6 @@
 content ---------------------------------
 
-chunk-repo-id: 1cd7a0b5-e4ab-5483-9394-c3bb0aa1ea79
-chunk-repo-url: None
-chunk-symbol_ids: []
-chunk-type: gap
-chunk-origin: cast_gap
-chunk-provider: tree-sitter
-chunk-part_total: None
-chunk-is_partial: False
-chunk-part_index: None
-chunk-token_count: 202
-chunk-scope_chain: []
-chunk-content_hash: 75f78400d46a83469e9624d817976f475153346c64e0d05a6bc5f8f12091f72a
-# File: backend/app/models/repository_file.py
-# Language: python
-# Imports: from datetime import datetime; from uuid import uuid4; from sqlalchemy import (
-    String,
-    DateTime,
-    ForeignKey,
-    BigInteger,
-    UniqueConstraint,
-    Index
-); from sqlalchemy.orm import Mapped, mapped_column, relationship; from app.db.base import Base
-
-from datetime import datetime
-from uuid import uuid4
-from sqlalchemy import (
-    String,
-    DateTime,
-    ForeignKey,
-    BigInteger,
-    UniqueConstraint,
-    Index
-)
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.db.base import Base
------------------------------------------
-
-content ---------------------------------
-
-chunk-repo-id: b5236df3-4ab7-5543-9245-cc33b8fb09c5
-chunk-repo-url: None
-chunk-symbol_ids: ['b8e51352-172d-5b6a-941e-9cafa2ba7013']
-chunk-type: class
-chunk-origin: query_symbol_split
-chunk-provider: tree-sitter
-chunk-part_total: 3
-chunk-is_partial: True
-chunk-part_index: 0
-chunk-token_count: 145
-chunk-scope_chain: ['RepositoryFile']
-chunk-content_hash: d5c5a045fe59e4a8911e8d7d904b2a0d3434e1ef800ffa2428fa4d1daf97e8be
-# File: backend/app/models/repository_file.py
-# Language: python
-# Scope: RepositoryFile
-# Signature: class RepositoryFile(Base):
-# Imports: from datetime import datetime; from uuid import uuid4; from sqlalchemy import (
-    String,
-    DateTime,
-    ForeignKey,
-    BigInteger,
-    UniqueConstraint,
-    Index
-); from sqlalchemy.orm import Mapped, mapped_column, relationship; from app.db.base import Base
-
-class RepositoryFile(Base):
------------------------------------------
-
-content ---------------------------------
-
-chunk-repo-id: 23077c4a-c91a-5ee1-b191-08e717382642
-chunk-repo-url: None
-chunk-symbol_ids: ['b7d44bd6-d957-5749-a827-2870ea17dea1']
-chunk-type: class
-chunk-origin: query_symbol_split
-chunk-provider: tree-sitter
-chunk-part_total: 12
-chunk-is_partial: True
-chunk-part_index: 0
-chunk-token_count: 193
-chunk-scope_chain: ['IndexingService']
-chunk-content_hash: ea1005fc965356767d4ed1c8938023859dfcdbc880829ff370856c4705973d42
-# File: backend/app/services/indexing/indexing_service.py
-# Language: python
-# Scope: IndexingService
-# Signature: class IndexingService:
-# Imports: from datetime import datetime, timezone; from pathlib import Path; from sqlalchemy.orm import Session; from app.models.repository import Repository; from app.models.repository_branch import RepositoryBranch; from app.models.indexing_jobs import IndexingJob, JobStatus; from app.models.repository_file import RepositoryFile; from app.services.repositories.file_discovery_service import FileDiscoveryService
-
-class IndexingService:
------------------------------------------
-
-content ---------------------------------
-
-chunk-repo-id: 073e2f61-6b02-56bb-bff9-b3c141ca9c20
-chunk-repo-url: https://github.com/BerriAI/clerkie-cli
-chunk-symbol_ids: ['ed22b1e0-aa13-5b42-8652-fb534189005a']
-chunk-type: merged
-chunk-origin: merged
-chunk-provider: tree-sitter
-chunk-part_total: None
-chunk-is_partial: False
-chunk-part_index: None
-chunk-token_count: 459
-chunk-scope_chain: []
-chunk-content_hash: a83632d188848fbac874e1e7b3959881814b5fedc82bd3062c29f8a0317b1f42
-# File: ask_clerkie.py
-# Language: python
-# Imports: import requests; from rich import print; from rich.console import Console; from rich.prompt import Prompt; import os; import call_clerkie
-
-import requests
-from rich import print
-from rich.console import Console
-from rich.prompt import Prompt
-import os
-import call_clerkie
-
-# Set the base URL of the Flask app
-base_url = "https://clerkieserverchromeextensionv1.krrishdholakia.repl.co/"
-error_log_path = os.path.expanduser("~") + "/.clerkie-cli/clerkie-src/c.log"
-user_email_path = os.path.expanduser("~") + "/.clerkie-cli/clerkie-src/clerkie.txt"
-
-
-def user_q():
-  console = Console()
-  returned = False
-  user_id = call_clerkie.get_user_id()
-
-  user_query = Prompt.ask("[bold green]:robot: How can I help you?")
-  if user_query.strip() == "":
-    return
-
-  with console.status("[bold green] Clerkie Thinking :robot:") as status:
-      while not returned:
-        response = requests.get(base_url + "/question", params={"user_query": user_query, "user_id": user_id})
-        returned = True
-
-  # Check the status code of the response
-  if response.status_code == 200:
-    # Print the response body
-    clerkie_resp = response.json()["response"].strip()
-    print("[bold green]\nClerkie:robot:: " + clerkie_resp)
-    return response.json()["response"]
-  else:
-    # Print an error message
-    return
-
-
-clerkie_resp = user_q()
------------------------------------------
-
-content ---------------------------------
-
-chunk-repo-id: d9dae077-6814-5f2a-b0e8-60b8be1e53d6
-chunk-repo-url: https://github.com/BerriAI/clerkie-cli
-chunk-symbol_ids: ['a51031b5-73ee-5800-a732-24797ef77525', '3d986ad5-e164-5e59-a712-f74e8ba24b9e']
-chunk-type: merged
-chunk-origin: merged
-chunk-provider: tree-sitter
-chunk-part_total: None
-chunk-is_partial: False
-chunk-part_index: None
-chunk-token_count: 686
-chunk-scope_chain: []
-chunk-content_hash: 244863ed5d0c4d35c2951db2c06c933b78a21f6a9804632b2df2a604808ba3c3
-# File: call_clerkie.py
-# Language: python
-# Imports: import requests; from rich import print; from rich.console import Console; import os
-
-import requests
-from rich import print
-from rich.console import Console
-import os
-
-# Set the base URL of the Flask app
-base_url = "https://clerkieserverchromeextensionv1.krrishdholakia.repl.co/"
-error_log_path = os.path.expanduser("~") + "/.clerkie-cli/clerkie-src/c.log"
-user_email_path = os.path.expanduser("~") + "/.clerkie-cli/clerkie-src/clerkie.txt"
-
-def get_user_id():
-  if not os.path.exists(user_email_path): # if user has not gone through email setup
-    return "default_user"
-  user_id_file = open(user_email_path, 'r')
-  email = ""
-  for line in user_id_file:
-    line = line.strip()
-    if line != "":
-      email = line
-  return email
-
-def debug_terminal():
-  f = open(error_log_path,'r')
-  i = 0
-  error_msg =""
-  for line in f:
-      if i > 50:
-          break
-      error_msg += line.replace('\x00', '') # handle empty bytes, don't send in req
-      i+=1
-  f.close()
-
-  # clear file
-  f = open(error_log_path,'w')
-  f.seek(0)
-  f.close()
-
-  lib_err_msg = """shell_session_save"""
-  if len(error_msg.strip())==0 or "type your request:" in error_msg or lib_err_msg in error_msg: # don't send empty stacktraces
-    return
-
-  # Send a GET request to the app with the user_query argument
-  console = Console()
-  returned = False
-  with console.status("[bold green] Clerkie noticed an error. Thinking :robot:") as status:
-      while not returned:
-        response = requests.get(base_url + "/term", params={"user_query": error_msg, "user_id": get_user_id()})
-        returned = True
-
-  # Check the status code of the response
-  if response.status_code == 200:
-    # Print the response body
-    clerkie_resp = response.json()["response"]
-    print("[bold green]\nClerkie:robot:: " + clerkie_resp.strip())
-    return response.json()["response"]
-  else:
-    # Print an error message
-    return
-    # print("Failed to query the app. Status code: " + str(response.status_code))
-
-clerkie_resp = debug_terminal()
------------------------------------------
-
-content ---------------------------------
-
-chunk-repo-id: e36a4fef-90a8-5044-94b7-384b69792217
-chunk-repo-url: https://github.com/BerriAI/clerkie-cli
-chunk-symbol_ids: ['43fd4df7-85f9-53a6-b3e3-abab20472923', '990309eb-fb8a-5341-b624-c4d27167ce72', 'd3afca8c-4214-5f8d-94d5-792d6c33e8db', '546321ae-2032-5941-af4f-642b421e4c35']
-chunk-type: merged
-chunk-origin: merged
-chunk-provider: tree-sitter
-chunk-part_total: None
-chunk-is_partial: False
-chunk-part_index: None
-chunk-token_count: 690
-chunk-scope_chain: []
-chunk-content_hash: a8876a6123a0af9067c1a5e5792c82bf04c205d4490e759f6ed0af22eba727a7
-# File: install.sh
-# Language: bash
-
-set -e
-
-echo "Starting clerkie-cli install"
-
-python3 -m pip install requests
-python3 -m pip install rich
-
-echo "Done pip installs"
-
-read_email() {
-  valid=0
-  while [ $valid -eq 0 ]; do
-    tput setaf 2
-    echo "Please enter your email address:"
-    tput sgr0
-    read email
-    if [[ $email =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]]; then
-      valid=1
-      echo "Thank you. The email address $email is valid."
-      echo "$email" >>$HOME/.clerkie-cli/clerkie-src/clerkie.txt
-    else
-      echo "Error: The email address $email is not valid. Please try again."
-    fi
-  done
-}
-
-get_latest_release() {
-  REPO_OWNER="ClerkieAI"
-  REPO_NAME="clerkie-cli"
-  local RELEASE_INFO=$(curl -s https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/latest)
-  local RELEASE_URL=$(echo "$RELEASE_INFO" | grep '"zipball_url":' | sed -E 's/.*"([^"]+)".*/\1/')
-  echo "$RELEASE_URL"
-}
-
-
-
-main() {
-    CLERKIE_DIR=$HOME/.clerkie-cli
-    START=$PWD
-    rm -rf $CLERKIE_DIR
-    mkdir -p $CLERKIE_DIR
-    cd $CLERKIE_DIR
-
-    RELEASE_URL=$(get_latest_release)
-    echo "$RELEASE_URL"
-
-    echo "downloading latest release in $CLERKIE_DIR"
-    ensure curl -L "$RELEASE_URL" -o $CLERKIE_DIR/release.zip
-    chmod +x $CLERKIE_DIR/release.zip
-    unzip -q -o $CLERKIE_DIR/release.zip
-    rm $CLERKIE_DIR/release.zip
-    echo "installed clerkie and unzipped"
-
-    FOLDER_NAME=$(ls -d */ | head -n 1)
-    if [ -d "$FOLDER_NAME" ]; then
-      echo "renaming $FOLDER_NAME"
-      mv "$FOLDER_NAME" "clerkie-src"
-    else
-      echo "Error: No folder found in the current working directory."
-    fi
-
-    echo "# clerkie-cli configs" >>$HOME/.zshrc
-    read_email
-    echo "export CLERKIE_SRC=$CLERKIE_DIR/clerkie-src" >>$HOME/.zshrc
-    echo '[[ -f "$HOME/.clerkie-cli/clerkie-src/setup.sh" ]] && builtin source "$HOME/.clerkie-cli/clerkie-src/setup.sh"' >>$HOME/.zshrc
-    echo "Clerkie Installed. Open a new Terminal Window to start using"
-    cd $START
-}
-
-ensure() {
-  if ! "$@"; then err "command failed: $*"; fi
-}
-
-main "$@" || exit 1
------------------------------------------
-
-content ---------------------------------
-
-chunk-repo-id: 8bf76d6d-cef5-5b7e-b2d9-bfeb7aa93c88
-chunk-repo-url: None
-chunk-symbol_ids: ['cea4546a-9984-5b78-94d4-f0fa6faea0c6']
-chunk-type: method
-chunk-origin: query_symbol_split
-chunk-provider: tree-sitter
-chunk-part_total: 9
-chunk-is_partial: True
-chunk-part_index: 4
-chunk-token_count: 199
-chunk-scope_chain: ['IndexingService', 'index_repository']
-chunk-content_hash: 9581981c3ab9766da322f342378131c6be7245edcafaeed6db182ece4472891a
-# File: backend/app/services/indexing/indexing_service.py
-# Language: python
-# Scope: IndexingService.index_repository
-# Signature: def index_repository(
-# Imports: from datetime import datetime, timezone; from pathlib import Path; from sqlalchemy.orm import Session; from app.models.repository import Repository; from app.models.repository_branch import RepositoryBranch; from app.models.indexing_jobs import IndexingJob, JobStatus; from app.models.repository_file import RepositoryFile; from app.services.repositories.file_discovery_service import FileDiscoveryService
-
-for branch in branches:
------------------------------------------
-
-content ---------------------------------
-
-chunk-repo-id: f4dc0700-8469-599e-834e-138f3bf01da4
-chunk-repo-url: https://github.com/BerriAI/clerkie-cli
-chunk-symbol_ids: ['c657e87b-0e1e-50e9-bd2b-80269c3face5']
-chunk-type: merged
-chunk-origin: merged
-chunk-provider: tree-sitter
-chunk-part_total: None
-chunk-is_partial: False
-chunk-part_index: None
-chunk-token_count: 618
-chunk-scope_chain: []
-chunk-content_hash: 36df180c26de82850e27f79ff3754016fe0db916bdf1423572bdbbb7b0a4b8a6
-# File: message_hook.py
-# Language: python
-# Imports: from discord_webhook import DiscordWebhook, DiscordEmbed; from rich import print
-
-from discord_webhook import DiscordWebhook, DiscordEmbed
-from rich import print
-
-
-# clerkie_url = 
-
-
-# SERVER_ID = 
-
-def post_user_experience(error, clerkie_suggestion, user_name="Default User"):
-    webhook = DiscordWebhook(url=clerkie_url, username="cli-bot")
-    embed = DiscordEmbed(
-        title="Debug Error from CLI", description="", color='03b2f8'
-    )
-    embed.set_author(
-        name=user_name,
-        icon_url="https://avatars0.githubusercontent.com/u/14542790",
-    )
-    embed.set_timestamp()
-    # Set `inline=False` for the embed field to occupy the whole line
-    embed.add_embed_field(name="Stacktrace", value=error, inline=False)
-    embed.add_embed_field(name="Clerkie Response #1", value=clerkie_suggestion, inline=False)
-
-    webhook.add_embed(embed)
-    response = webhook.execute()
-    if response.status_code == 200:
-        data = response.json()
-        channel_id = data['channel_id']
-        m_id = data['id']
-        print("[bold green] You can continue your conversation on discord, I posted information about the error here:")
-        print(f'[bold green] https://discordapp.com/channels/{SERVER_ID}/{channel_id}/{m_id}')
-
-test_error = """
-Traceback (most recent call last):
-  File "message_hook.py", line 4, in <module>
-    response = webhook.execute()
-  File "/Users/daddyish/Library/Python/3.8/lib/python/site-packages/discord_webhook/webhook.py", line 435, in execute
-    response = self.api_post_request()
-
-"""
-response = """
-you can check that the URL is valid and includes the schema by using the Python requests library. 
-You can use the "requests.utils.urlparse" method to check the URL format, and add the schema if needed.
-"""
-# post_user_experience(test_error, response)
------------------------------------------
-
-content ---------------------------------
-
-chunk-repo-id: 809d541b-cddc-55a0-a125-0eb40cee9714
-chunk-repo-url: https://github.com/BerriAI/clerkie-cli
-chunk-symbol_ids: ['a0b22971-81e3-516d-829d-bae122900555', '6e10dcef-d824-5055-bb4c-831ce64277a7']
-chunk-type: merged
-chunk-origin: merged
-chunk-provider: tree-sitter
-chunk-part_total: None
-chunk-is_partial: False
-chunk-part_index: None
-chunk-token_count: 170
-chunk-scope_chain: []
-chunk-content_hash: f8a6deeee1f8fb7c44e91446239a14f9937ee6992da0185c5430602db634df83
-# File: setup.sh
-# Language: bash
-
-LOG_FILE=$CLERKIE_SRC/c.log
-SCRIPT_PATH=$CLERKIE_SRC/call_clerkie.py
-
-setup_capture_hook() {
-    exec 2> >(tee $LOG_FILE)
-    echo "Clerkie Activated."
-}
-
-setup_clrk_trigger {
-
-}
-
-setup_capture_hook
-
-precmd() {
-    STATUS=$?
-    if [[ $STATUS -ne 0 && $STATUS -ne 130 ]]; then
-        python3 "$SCRIPT_PATH" debug_terminal
-    fi
-    if [[ "${1:0:4}" == "clrk" ]]; then
-      echo "Command starts with 'clrk'"
-    else
-      echo "Command does not start with 'clrk'"
-    fi
-}
------------------------------------------
-
-content ---------------------------------
-
-chunk-repo-id: 2523e665-7658-5981-beb4-2e29b74f288a
-chunk-repo-url: None
-chunk-symbol_ids: []
-chunk-type: gap
-chunk-origin: cast_gap
-chunk-provider: tree-sitter
-chunk-part_total: None
-chunk-is_partial: False
-chunk-part_index: None
-chunk-token_count: 203
-chunk-scope_chain: []
-chunk-content_hash: cf4f367d26866c460ef988b7c8d345536932cf506be13bd4307e45d359282437
-# File: backend/app/models/__init__.py
-# Language: python
-# Imports: from .user import User; from .project import Project; from .repository import Repository; from .repository_branch import RepositoryBranch; from .indexing_jobs import IndexingJob; from .repository_file import RepositoryFile
-
-from .user import User
-from .project import Project
-from .repository import Repository
-from .repository_branch import RepositoryBranch
-from .indexing_jobs import IndexingJob
-from .repository_file import RepositoryFile
-
-__all__ = ["User", "Project", "Repository", "RepositoryBranch", "IndexingJob", "RepositoryFile"]
------------------------------------------
-
-content ---------------------------------
-
-chunk-repo-id: d6d34d2a-645c-5697-bb97-f6d91c3bbeb8
+chunk-repo-id: 9d2c60a0-9e9a-5fc1-8510-ba301deb36cb
 chunk-repo-url: None
 chunk-symbol_ids: []
 chunk-type: gap
@@ -554,33 +69,9 @@ pro_repo_attachement_apis = [
 
 content ---------------------------------
 
-chunk-repo-id: 609461ab-37f7-5fee-a884-8fc5d9502a87
+chunk-repo-id: 6907686a-ccca-5c03-9eeb-8df8d1d395b5
 chunk-repo-url: None
-chunk-symbol_ids: ['3a8227b0-93e1-5cc6-aa3a-1dec8a06e3b0']
-chunk-type: method
-chunk-origin: query_symbol
-chunk-provider: tree-sitter
-chunk-part_total: None
-chunk-is_partial: False
-chunk-part_index: None
-chunk-token_count: 106
-chunk-scope_chain: ['FileDiscoveryService', '__init__']
-chunk-content_hash: c35bf263f9049eee9557b07822f220a5645ddf28347d309cddbcfcefa3c8347a
-# File: backend/app/services/repositories/file_discovery_service.py
-# Language: python
-# Scope: FileDiscoveryService.__init__
-# Signature: def __init__(self, db: Session):
-# Imports: import subprocess; from pathlib import Path; from sqlalchemy.orm import Session
-
-def __init__(self, db: Session):
-        self.db = db
------------------------------------------
-
-content ---------------------------------
-
-chunk-repo-id: 7c258da5-216c-5090-9438-1581c682e4cc
-chunk-repo-url: None
-chunk-symbol_ids: ['e56f353e-b4e1-57ec-8ba1-8b2c827b71cb', '15a80903-1fe2-51f9-ab63-4e9f237b2c37', '3366413c-f172-5bf7-9563-d484745ba293']
+chunk-symbol_ids: ['4813bafa-302a-5e68-9ce9-4412890c9a67', 'b23e656e-56ac-542a-84af-0a1676aa9e8a', 'fc3cc7cb-1eee-5c62-b04b-dcb39f912fed']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -664,9 +155,9 @@ def me(
 
 content ---------------------------------
 
-chunk-repo-id: 113607b6-c1f6-522a-8edc-be0c43330dad
+chunk-repo-id: f5ed3c71-3e54-5d1b-930f-2318aedac169
 chunk-repo-url: None
-chunk-symbol_ids: ['f8621e9c-f1a0-56e1-9b22-0e1a2ebcaf3e', 'c07810d1-7475-5dc6-9ded-0ced6edc3595']
+chunk-symbol_ids: ['3d95eef6-61e6-5ee5-a5f0-1dd89be7b33d', '68313868-e624-51d4-a06f-cdad44550f87']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -747,9 +238,9 @@ def create_project(
 
 content ---------------------------------
 
-chunk-repo-id: e8096e84-adb0-5df0-b814-0b5705af01f8
+chunk-repo-id: 2d6c7110-5f38-51f4-ab89-627d7adae587
 chunk-repo-url: None
-chunk-symbol_ids: ['4e1845cd-64e0-5e41-a107-f1dbf2543504', 'f40b8e62-1cbb-5e05-872c-fd8623456c27', 'f983502f-beaf-53db-bc67-9c86262b913d']
+chunk-symbol_ids: ['4c67878e-5c4f-5b5a-9517-ffd28b5e5a4e', 'b0abcc13-348e-5baa-8ac6-7af7617939ea', '1614b1e5-72cb-5158-84d0-70e7f94a13e1']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -831,9 +322,36 @@ def attach_existing_repository(
 
 content ---------------------------------
 
-chunk-repo-id: 491f5fb9-3f57-5016-a55f-8fc37cdf438d
+chunk-repo-id: 379286ae-2f51-56c0-84d6-fac66865f42f
 chunk-repo-url: None
-chunk-symbol_ids: ['b626bf35-278f-56d0-84a7-03e0e11671ab', 'd3dadd83-596e-5ac7-860f-fa38bc5b115a', 'f4383c72-f08c-59dd-a1b4-a580bce61a18']
+chunk-symbol_ids: []
+chunk-type: gap
+chunk-origin: cast_gap
+chunk-provider: tree-sitter
+chunk-part_total: None
+chunk-is_partial: False
+chunk-part_index: None
+chunk-token_count: 102
+chunk-scope_chain: []
+chunk-content_hash: acf23e8355485fb0aecccdeb469041fdab24fa3644c4cd9421470a21c179ba21
+# File: frontend/vite.config.ts
+# Language: typescript
+# Imports: import react from '@vitejs/plugin-react'; import { defineConfig } from 'vite'
+
+import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+})
+-----------------------------------------
+
+content ---------------------------------
+
+chunk-repo-id: 84e8479a-86ac-500e-a57b-78586e9f5a12
+chunk-repo-url: None
+chunk-symbol_ids: ['29bf4f02-dac0-5f6a-a8e8-0d8fc39a1f1d', '53384edb-0263-5af6-97fc-5a4efa2a841b', '39a6775f-a6a1-5451-9f0f-17bf02650e69']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -924,9 +442,512 @@ def detach_repository_from_project(
 
 content ---------------------------------
 
-chunk-repo-id: 0027b545-2496-5a41-8643-fb1a8bd583be
+chunk-repo-id: b13af4c4-e197-5375-b147-b721b22ff99c
 chunk-repo-url: None
-chunk-symbol_ids: ['fdd06f80-68e3-5a91-8ea7-58c19c31b03e', 'c8c4b512-d0c1-5b53-82d6-39638a0eb7a9']
+chunk-symbol_ids: ['858eee14-ea9c-581e-ba1c-a0b290493311']
+chunk-type: merged
+chunk-origin: merged
+chunk-provider: tree-sitter
+chunk-part_total: None
+chunk-is_partial: False
+chunk-part_index: None
+chunk-token_count: 512
+chunk-scope_chain: []
+chunk-content_hash: dc55f831ccfde739cae571f19f29821472a3b15178c7c7b2972f8f2af59d908b
+# File: backend/app/api/routes/project.py
+# Language: python
+# Imports: from fastapi import APIRouter, Depends, HTTPException, Response, UploadFile, status; from sqlalchemy.orm import Session; from app.core.security import get_current_user; from app.db.session import get_db; from app.models.user import User; from app.schemas.project import (
+    ProjectRepositoryAttach,
+    ProjectResponse,
+    ProjectCreate
+); from app.schemas.repository import GithubRepositoryCreate, RepositoryResponse; from app.services.projects.project_service import ProjectService; from app.services.repositories.repository_service import RepositoryService
+
+@router.delete(
+    "/{project_id}",
+    status_code=204
+)
+def delete_project(
+    project_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    project_service = ProjectService(db=db)
+    repo_service = RepositoryService(db=db)
+
+    old_repository_id = project_service.delete_project(
+        user_id=current_user.id,
+        project_id=project_id
+    )
+
+    if old_repository_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found"
+        )
+    
+    # If the project had a repository, clean it up if orphaned
+    if old_repository_id != "no_repo":
+        repo_service.cleanup_repository_if_orphan(
+            user_id=current_user.id,
+            repository_id=old_repository_id
+        )
+        
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+-----------------------------------------
+
+content ---------------------------------
+
+chunk-repo-id: 7e8b4b18-147e-5094-a2de-859fda643d43
+chunk-repo-url: None
+chunk-symbol_ids: ['16591566-8455-52ac-b444-ce4517209690', '0a2dd97d-a7c7-50a6-82da-250880e0102c', '755b152e-1e85-589e-adab-12fe5ef872d1']
+chunk-type: merged
+chunk-origin: merged
+chunk-provider: tree-sitter
+chunk-part_total: None
+chunk-is_partial: False
+chunk-part_index: None
+chunk-token_count: 735
+chunk-scope_chain: []
+chunk-content_hash: 304c24afeacf9dde850f70226ac50397f8e099a3562ce8dc442f373ebe589726
+# File: backend/app/api/routes/repository.py
+# Language: python
+# Imports: from fastapi import APIRouter, Depends, HTTPException, status; from sqlalchemy.orm import Session; from app.core.security import get_current_user; from app.db.session import get_db; from app.models.user import User; from app.schemas.repository import RepositoryResponse; from app.schemas.indexing import IndexingJobResponse; from app.services.repositories.repository_service import RepositoryService
+
+from fastapi import APIRouter, Depends, HTTPException, status
+
+from sqlalchemy.orm import Session
+
+from app.core.security import get_current_user
+from app.db.session import get_db
+
+from app.models.user import User
+
+from app.schemas.repository import RepositoryResponse
+from app.schemas.indexing import IndexingJobResponse
+
+from app.services.repositories.repository_service import RepositoryService
+
+router = APIRouter(
+    prefix="/repositories",
+    tags=["Repositories"]
+)
+
+
+@router.get(
+    "",
+    response_model=list[RepositoryResponse],
+    status_code=200
+)
+def list_repositories(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    service = RepositoryService(db)
+
+    return service.list_repositories(current_user.id)
+
+
+@router.get(
+    "/{repository_id}",
+    response_model=RepositoryResponse,
+    status_code=200
+)
+def get_repository(
+    repository_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    service = RepositoryService(db)
+    repository = service.get_repository(
+        user_id=current_user.id,
+        repository_id=repository_id
+    )
+
+    if repository is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Repository not found"
+        )
+
+    return repository
+
+
+
+@router.post(
+    "/{repository_id}/index",
+    response_model=IndexingJobResponse,
+    status_code=status.HTTP_200_OK
+)
+def index_repository(
+    repository_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    service = RepositoryService(db)
+    return service.index_repository(
+            current_user.id,
+            repository_id
+    )
+-----------------------------------------
+
+content ---------------------------------
+
+chunk-repo-id: d3076aef-6ced-5668-873e-8164d04bcf9e
+chunk-repo-url: None
+chunk-symbol_ids: []
+chunk-type: gap
+chunk-origin: cast_gap
+chunk-provider: tree-sitter
+chunk-part_total: None
+chunk-is_partial: False
+chunk-part_index: None
+chunk-token_count: 70
+chunk-scope_chain: []
+chunk-content_hash: a26016f7270182a8cd28802ccad52cbceafbadde94a63db55a461e1c3aaeef1b
+# File: backend/app/api/routes/user.py
+# Language: python
+# Imports: from fastapi.routing import APIRouter
+
+from fastapi.routing import APIRouter
+
+router = APIRouter(
+    prefix="/users",
+    tags=["Users"]
+)
+-----------------------------------------
+
+content ---------------------------------
+
+chunk-repo-id: a718952d-4d70-55d1-9f1e-32956067ff14
+chunk-repo-url: None
+chunk-symbol_ids: ['78449f67-b2c6-523a-8e1b-31544beef338']
+chunk-type: merged
+chunk-origin: merged
+chunk-provider: tree-sitter
+chunk-part_total: None
+chunk-is_partial: False
+chunk-part_index: None
+chunk-token_count: 338
+chunk-scope_chain: []
+chunk-content_hash: 18d34305f9a381da69a59a977d3de509f8cd7da37acf746cb729cfb217d883bb
+# File: backend/app/core/config.py
+# Language: python
+# Imports: from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+class Settings(BaseSettings):
+    # Application
+    APP_NAME: str = "FastAPI_App"
+    ENVIRONMENT: str = "development"
+    
+    # API keys
+    OPENAI_API_KEY: str
+    
+    # Database
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
+    POSTGRES_DB: str
+    DATABASE_URL: str
+    
+    # Qdrant
+    QDRANT_URL: str 
+    QDRANT__SERVICE__API_KEY: str
+
+    # Storage
+    REPOSITORY_STORAGE_PATH: str = "storage/repositories"
+    
+    # frontend
+    VITE_FRONTEND_API_URL: str
+    
+    # debug settings
+    @property
+    def DEBUG(self) -> bool:
+        return self.ENVIRONMENT == "development"
+    
+    # docker will inject env variables to container's enviornment and pydantic will read from the container's environment too
+    
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        extra="ignore"
+    )
+-----------------------------------------
+
+content ---------------------------------
+
+chunk-repo-id: 47101d60-c2de-5757-883d-ecb7b2b3c370
+chunk-repo-url: None
+chunk-symbol_ids: ['dc690025-4b46-5662-ac51-1623b905f1fd']
+chunk-type: merged
+chunk-origin: merged
+chunk-provider: tree-sitter
+chunk-part_total: None
+chunk-is_partial: False
+chunk-part_index: None
+chunk-token_count: 169
+chunk-scope_chain: []
+chunk-content_hash: c81fa90c0a600d514005ea92e78af6aeacce1fbcfd1bd65ea993a488418677e0
+# File: backend/app/core/config.py
+# Language: python
+# Imports: from pydantic_settings import BaseSettings, SettingsConfigDict
+
+def DEBUG(self) -> bool:
+        return self.ENVIRONMENT == "development"
+    
+    # docker will inject env variables to container's enviornment and pydantic will read from the container's environment too
+    
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        extra="ignore"
+    )
+
+
+# Create a global settings instance
+settings = Settings() #type: ignore
+-----------------------------------------
+
+content ---------------------------------
+
+chunk-repo-id: 35d0fb1d-cbf9-5f52-be3b-983535387038
+chunk-repo-url: None
+chunk-symbol_ids: ['d14aab64-1256-54b6-8955-90a47f6272df']
+chunk-type: merged
+chunk-origin: merged
+chunk-provider: tree-sitter
+chunk-part_total: None
+chunk-is_partial: False
+chunk-part_index: None
+chunk-token_count: 292
+chunk-scope_chain: []
+chunk-content_hash: 6e8c7dec3082cb202353d6af7de823cd58edff863b8aedf2dc9d92e6e0c1e3e5
+# File: backend/app/core/security.py
+# Language: python
+# Imports: from fastapi import Header, HTTPException, Depends; from sqlalchemy.orm import Session; from app.db.session import get_db; from app.models.user import User
+
+from fastapi import Header, HTTPException, Depends
+from sqlalchemy.orm import Session
+
+from app.db.session import get_db
+from app.models.user import User
+
+
+def get_current_user(
+    db: Session = Depends(get_db),
+    authorization: str = Header(...)
+) -> User:
+
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid authorization header"
+        )
+
+    token = authorization.replace("Bearer ", "")
+
+    user = db.get(User, token)
+
+    if user is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid token"
+        )
+
+    return user
+-----------------------------------------
+
+content ---------------------------------
+
+chunk-repo-id: 9849ace5-5b30-59d4-93a5-5f5ae8ad3f23
+chunk-repo-url: None
+chunk-symbol_ids: ['61bd065b-7281-5d97-b3dc-6b5d524ea862']
+chunk-type: merged
+chunk-origin: merged
+chunk-provider: tree-sitter
+chunk-part_total: None
+chunk-is_partial: False
+chunk-part_index: None
+chunk-token_count: 62
+chunk-scope_chain: []
+chunk-content_hash: dbe5e1488dbe275041d2548a66c569b612121f1717d3e45bc4ec78de24a62511
+# File: backend/app/db/base.py
+# Language: python
+# Imports: from sqlalchemy.orm import DeclarativeBase
+
+from sqlalchemy.orm import DeclarativeBase
+
+class Base(DeclarativeBase):
+    pass
+-----------------------------------------
+
+content ---------------------------------
+
+chunk-repo-id: 3424111c-6b94-5fc3-ac53-536e964beb6c
+chunk-repo-url: None
+chunk-symbol_ids: ['c3702907-80da-5281-ae81-2e45bfaab82b']
+chunk-type: merged
+chunk-origin: merged
+chunk-provider: tree-sitter
+chunk-part_total: None
+chunk-is_partial: False
+chunk-part_index: None
+chunk-token_count: 189
+chunk-scope_chain: []
+chunk-content_hash: 655dbd72b57634a1fd21f40b0b0531cbd51fa0eaa83efab449ea512237362590
+# File: backend/app/db/init_db.py
+# Language: python
+# Imports: from app.db.base import Base; from app.db.session import engine; import app.models
+
+from app.db.base import Base
+from app.db.session import engine
+
+import app.models # here all orm models are imported so that da can create them all when the db start at the beginning later db migrations will not create new tables from scratch but will modify only the changes in the already present tables in database
+
+def init_db():
+    Base.metadata.create_all(bind=engine)
+
+if __name__ == "__main__":
+    init_db()
+-----------------------------------------
+
+content ---------------------------------
+
+chunk-repo-id: 1f03fbad-1528-57e0-85ec-e9164184a68f
+chunk-repo-url: None
+chunk-symbol_ids: ['1d6aa829-fb05-56b1-9e87-e6083d4835cb']
+chunk-type: merged
+chunk-origin: merged
+chunk-provider: tree-sitter
+chunk-part_total: None
+chunk-is_partial: False
+chunk-part_index: None
+chunk-token_count: 206
+chunk-scope_chain: []
+chunk-content_hash: 7c53653f456f53464a3d6e1bf437d51f0703a8bd4f3ea71844147874d36531fe
+# File: backend/app/db/session.py
+# Language: python
+# Imports: from app.core.config import settings; from sqlalchemy import create_engine; from sqlalchemy.orm import sessionmaker
+
+from app.core.config import settings
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+database_url = settings.DATABASE_URL
+
+engine = create_engine(
+    url=database_url,
+    echo=False
+)
+
+SessionLocal = sessionmaker(
+    bind=engine,
+    autoflush=False,
+    autocommit=False
+)
+
+# fucntion to create one seesion
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+-----------------------------------------
+
+content ---------------------------------
+
+chunk-repo-id: 9d3570ec-d5d2-5f77-95a1-bc17cd2ea725
+chunk-repo-url: None
+chunk-symbol_ids: ['4816c1b7-7ede-5fd0-869d-1d57e44927da', 'd425a742-be67-59fd-8097-c6b57a202792']
+chunk-type: merged
+chunk-origin: merged
+chunk-provider: tree-sitter
+chunk-part_total: None
+chunk-is_partial: False
+chunk-part_index: None
+chunk-token_count: 476
+chunk-scope_chain: []
+chunk-content_hash: 56062441e6f88335ab236c202a2330d78225ce5b3c5e0e87850c2b99f6f5b241
+# File: backend/app/main.py
+# Language: python
+# Imports: from fastapi import FastAPI; from app.core.config import settings; from fastapi.middleware.cors import CORSMiddleware; from app.api.routes.auth import router as auth_router; from app.api.routes.user import router as user_router; from app.api.routes.project import router as project_router; from app.api.routes.repository import router as repository_router; from app.db.init_db import init_db
+
+from fastapi import FastAPI
+from app.core.config import settings
+from fastapi.middleware.cors import CORSMiddleware
+from app.api.routes.auth import router as auth_router
+from app.api.routes.user import router as user_router
+from app.api.routes.project import router as project_router
+from app.api.routes.repository import router as repository_router
+
+from app.db.init_db import init_db
+
+init_db()
+
+app = FastAPI()
+
+app.include_router(auth_router)
+app.include_router(user_router)
+app.include_router(project_router)
+app.include_router(repository_router)
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[settings.VITE_FRONTEND_API_URL],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+
+@app.get("/")
+def root():
+    return {
+        "app_name": settings.APP_NAME,
+        "environment": settings.ENVIRONMENT
+    }
+    
+@app.get("/health")
+def health():
+    return {
+        "status": "ok",
+        "service": "ai-copilot-backend"
+    }
+-----------------------------------------
+
+content ---------------------------------
+
+chunk-repo-id: 066178c5-afd2-58ad-9bcc-d0d14f55f80a
+chunk-repo-url: None
+chunk-symbol_ids: []
+chunk-type: gap
+chunk-origin: cast_gap
+chunk-provider: tree-sitter
+chunk-part_total: None
+chunk-is_partial: False
+chunk-part_index: None
+chunk-token_count: 203
+chunk-scope_chain: []
+chunk-content_hash: cf4f367d26866c460ef988b7c8d345536932cf506be13bd4307e45d359282437
+# File: backend/app/models/__init__.py
+# Language: python
+# Imports: from .user import User; from .project import Project; from .repository import Repository; from .repository_branch import RepositoryBranch; from .indexing_jobs import IndexingJob; from .repository_file import RepositoryFile
+
+from .user import User
+from .project import Project
+from .repository import Repository
+from .repository_branch import RepositoryBranch
+from .indexing_jobs import IndexingJob
+from .repository_file import RepositoryFile
+
+__all__ = ["User", "Project", "Repository", "RepositoryBranch", "IndexingJob", "RepositoryFile"]
+-----------------------------------------
+
+content ---------------------------------
+
+chunk-repo-id: c70b515d-89d9-5ce0-8c5e-fb27f04a49e2
+chunk-repo-url: None
+chunk-symbol_ids: ['8c2e33f0-9aaf-5d02-9ac2-55f96037d050', '8e546e85-c9d1-53b7-894d-2560818f7188']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -1029,484 +1050,9 @@ class IndexingJob(Base):
 
 content ---------------------------------
 
-chunk-repo-id: a057dd5a-a755-5a16-9b64-2b09727bb3e9
+chunk-repo-id: b1e2badf-698d-5344-a4d1-9e88e95b449e
 chunk-repo-url: None
-chunk-symbol_ids: ['b239eda4-6ccb-52aa-a0a7-d00cd3506284']
-chunk-type: merged
-chunk-origin: merged
-chunk-provider: tree-sitter
-chunk-part_total: None
-chunk-is_partial: False
-chunk-part_index: None
-chunk-token_count: 512
-chunk-scope_chain: []
-chunk-content_hash: dc55f831ccfde739cae571f19f29821472a3b15178c7c7b2972f8f2af59d908b
-# File: backend/app/api/routes/project.py
-# Language: python
-# Imports: from fastapi import APIRouter, Depends, HTTPException, Response, UploadFile, status; from sqlalchemy.orm import Session; from app.core.security import get_current_user; from app.db.session import get_db; from app.models.user import User; from app.schemas.project import (
-    ProjectRepositoryAttach,
-    ProjectResponse,
-    ProjectCreate
-); from app.schemas.repository import GithubRepositoryCreate, RepositoryResponse; from app.services.projects.project_service import ProjectService; from app.services.repositories.repository_service import RepositoryService
-
-@router.delete(
-    "/{project_id}",
-    status_code=204
-)
-def delete_project(
-    project_id: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    project_service = ProjectService(db=db)
-    repo_service = RepositoryService(db=db)
-
-    old_repository_id = project_service.delete_project(
-        user_id=current_user.id,
-        project_id=project_id
-    )
-
-    if old_repository_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Project not found"
-        )
-    
-    # If the project had a repository, clean it up if orphaned
-    if old_repository_id != "no_repo":
-        repo_service.cleanup_repository_if_orphan(
-            user_id=current_user.id,
-            repository_id=old_repository_id
-        )
-        
-    db.commit()
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
------------------------------------------
-
-content ---------------------------------
-
-chunk-repo-id: af6bcd30-5532-563b-984a-72cb87ab218d
-chunk-repo-url: None
-chunk-symbol_ids: ['33bf8b1b-fc17-5b59-9d9a-52d1eb203288', '3b1208b0-8a9d-587e-825f-9396f69f4d77', 'fbc674a3-164f-561a-a10d-85c8a6cf995d']
-chunk-type: merged
-chunk-origin: merged
-chunk-provider: tree-sitter
-chunk-part_total: None
-chunk-is_partial: False
-chunk-part_index: None
-chunk-token_count: 735
-chunk-scope_chain: []
-chunk-content_hash: 304c24afeacf9dde850f70226ac50397f8e099a3562ce8dc442f373ebe589726
-# File: backend/app/api/routes/repository.py
-# Language: python
-# Imports: from fastapi import APIRouter, Depends, HTTPException, status; from sqlalchemy.orm import Session; from app.core.security import get_current_user; from app.db.session import get_db; from app.models.user import User; from app.schemas.repository import RepositoryResponse; from app.schemas.indexing import IndexingJobResponse; from app.services.repositories.repository_service import RepositoryService
-
-from fastapi import APIRouter, Depends, HTTPException, status
-
-from sqlalchemy.orm import Session
-
-from app.core.security import get_current_user
-from app.db.session import get_db
-
-from app.models.user import User
-
-from app.schemas.repository import RepositoryResponse
-from app.schemas.indexing import IndexingJobResponse
-
-from app.services.repositories.repository_service import RepositoryService
-
-router = APIRouter(
-    prefix="/repositories",
-    tags=["Repositories"]
-)
-
-
-@router.get(
-    "",
-    response_model=list[RepositoryResponse],
-    status_code=200
-)
-def list_repositories(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    service = RepositoryService(db)
-
-    return service.list_repositories(current_user.id)
-
-
-@router.get(
-    "/{repository_id}",
-    response_model=RepositoryResponse,
-    status_code=200
-)
-def get_repository(
-    repository_id: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    service = RepositoryService(db)
-    repository = service.get_repository(
-        user_id=current_user.id,
-        repository_id=repository_id
-    )
-
-    if repository is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Repository not found"
-        )
-
-    return repository
-
-
-
-@router.post(
-    "/{repository_id}/index",
-    response_model=IndexingJobResponse,
-    status_code=status.HTTP_200_OK
-)
-def index_repository(
-    repository_id: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    service = RepositoryService(db)
-    return service.index_repository(
-            current_user.id,
-            repository_id
-    )
------------------------------------------
-
-content ---------------------------------
-
-chunk-repo-id: fe12f14e-2be2-5c10-b3b5-3b7cfbaa6295
-chunk-repo-url: None
-chunk-symbol_ids: []
-chunk-type: gap
-chunk-origin: cast_gap
-chunk-provider: tree-sitter
-chunk-part_total: None
-chunk-is_partial: False
-chunk-part_index: None
-chunk-token_count: 70
-chunk-scope_chain: []
-chunk-content_hash: a26016f7270182a8cd28802ccad52cbceafbadde94a63db55a461e1c3aaeef1b
-# File: backend/app/api/routes/user.py
-# Language: python
-# Imports: from fastapi.routing import APIRouter
-
-from fastapi.routing import APIRouter
-
-router = APIRouter(
-    prefix="/users",
-    tags=["Users"]
-)
------------------------------------------
-
-content ---------------------------------
-
-chunk-repo-id: d5ae67f2-2c92-5253-bb2c-49871948ef9d
-chunk-repo-url: None
-chunk-symbol_ids: ['e7c5549e-b86f-58d6-bda2-b8280bdf3eb1']
-chunk-type: merged
-chunk-origin: merged
-chunk-provider: tree-sitter
-chunk-part_total: None
-chunk-is_partial: False
-chunk-part_index: None
-chunk-token_count: 338
-chunk-scope_chain: []
-chunk-content_hash: 18d34305f9a381da69a59a977d3de509f8cd7da37acf746cb729cfb217d883bb
-# File: backend/app/core/config.py
-# Language: python
-# Imports: from pydantic_settings import BaseSettings, SettingsConfigDict
-
-from pydantic_settings import BaseSettings, SettingsConfigDict
-
-class Settings(BaseSettings):
-    # Application
-    APP_NAME: str = "FastAPI_App"
-    ENVIRONMENT: str = "development"
-    
-    # API keys
-    OPENAI_API_KEY: str
-    
-    # Database
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_DB: str
-    DATABASE_URL: str
-    
-    # Qdrant
-    QDRANT_URL: str 
-    QDRANT__SERVICE__API_KEY: str
-
-    # Storage
-    REPOSITORY_STORAGE_PATH: str = "storage/repositories"
-    
-    # frontend
-    VITE_FRONTEND_API_URL: str
-    
-    # debug settings
-    @property
-    def DEBUG(self) -> bool:
-        return self.ENVIRONMENT == "development"
-    
-    # docker will inject env variables to container's enviornment and pydantic will read from the container's environment too
-    
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        extra="ignore"
-    )
------------------------------------------
-
-content ---------------------------------
-
-chunk-repo-id: 494e6eda-2c79-5516-bd3f-3de1c9e46be9
-chunk-repo-url: None
-chunk-symbol_ids: ['c1e5c6ea-faa6-597b-a0b7-c596a003a5be']
-chunk-type: merged
-chunk-origin: merged
-chunk-provider: tree-sitter
-chunk-part_total: None
-chunk-is_partial: False
-chunk-part_index: None
-chunk-token_count: 169
-chunk-scope_chain: []
-chunk-content_hash: c81fa90c0a600d514005ea92e78af6aeacce1fbcfd1bd65ea993a488418677e0
-# File: backend/app/core/config.py
-# Language: python
-# Imports: from pydantic_settings import BaseSettings, SettingsConfigDict
-
-def DEBUG(self) -> bool:
-        return self.ENVIRONMENT == "development"
-    
-    # docker will inject env variables to container's enviornment and pydantic will read from the container's environment too
-    
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        extra="ignore"
-    )
-
-
-# Create a global settings instance
-settings = Settings() #type: ignore
------------------------------------------
-
-content ---------------------------------
-
-chunk-repo-id: 37b0dfbd-eda6-51d5-9e68-e74ca34dfb63
-chunk-repo-url: None
-chunk-symbol_ids: ['805238e5-f389-542a-814f-c72d525f312b']
-chunk-type: merged
-chunk-origin: merged
-chunk-provider: tree-sitter
-chunk-part_total: None
-chunk-is_partial: False
-chunk-part_index: None
-chunk-token_count: 292
-chunk-scope_chain: []
-chunk-content_hash: 6e8c7dec3082cb202353d6af7de823cd58edff863b8aedf2dc9d92e6e0c1e3e5
-# File: backend/app/core/security.py
-# Language: python
-# Imports: from fastapi import Header, HTTPException, Depends; from sqlalchemy.orm import Session; from app.db.session import get_db; from app.models.user import User
-
-from fastapi import Header, HTTPException, Depends
-from sqlalchemy.orm import Session
-
-from app.db.session import get_db
-from app.models.user import User
-
-
-def get_current_user(
-    db: Session = Depends(get_db),
-    authorization: str = Header(...)
-) -> User:
-
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid authorization header"
-        )
-
-    token = authorization.replace("Bearer ", "")
-
-    user = db.get(User, token)
-
-    if user is None:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid token"
-        )
-
-    return user
------------------------------------------
-
-content ---------------------------------
-
-chunk-repo-id: b3319dc9-34c5-59c5-99e0-ec8082509bdf
-chunk-repo-url: None
-chunk-symbol_ids: ['67086fbc-b60e-571b-8309-59389296f4dc']
-chunk-type: merged
-chunk-origin: merged
-chunk-provider: tree-sitter
-chunk-part_total: None
-chunk-is_partial: False
-chunk-part_index: None
-chunk-token_count: 62
-chunk-scope_chain: []
-chunk-content_hash: dbe5e1488dbe275041d2548a66c569b612121f1717d3e45bc4ec78de24a62511
-# File: backend/app/db/base.py
-# Language: python
-# Imports: from sqlalchemy.orm import DeclarativeBase
-
-from sqlalchemy.orm import DeclarativeBase
-
-class Base(DeclarativeBase):
-    pass
------------------------------------------
-
-content ---------------------------------
-
-chunk-repo-id: 5889e3f3-5e17-5f45-87b2-cd9768d12ea3
-chunk-repo-url: None
-chunk-symbol_ids: ['d3be5b43-8970-5bfe-acc7-3c6f96a9023b']
-chunk-type: merged
-chunk-origin: merged
-chunk-provider: tree-sitter
-chunk-part_total: None
-chunk-is_partial: False
-chunk-part_index: None
-chunk-token_count: 189
-chunk-scope_chain: []
-chunk-content_hash: 655dbd72b57634a1fd21f40b0b0531cbd51fa0eaa83efab449ea512237362590
-# File: backend/app/db/init_db.py
-# Language: python
-# Imports: from app.db.base import Base; from app.db.session import engine; import app.models
-
-from app.db.base import Base
-from app.db.session import engine
-
-import app.models # here all orm models are imported so that da can create them all when the db start at the beginning later db migrations will not create new tables from scratch but will modify only the changes in the already present tables in database
-
-def init_db():
-    Base.metadata.create_all(bind=engine)
-
-if __name__ == "__main__":
-    init_db()
------------------------------------------
-
-content ---------------------------------
-
-chunk-repo-id: 0c8d7a7f-efad-543d-9c16-6824749b7a08
-chunk-repo-url: None
-chunk-symbol_ids: ['93399171-3ca9-55ba-88c3-38f7f1430de7']
-chunk-type: merged
-chunk-origin: merged
-chunk-provider: tree-sitter
-chunk-part_total: None
-chunk-is_partial: False
-chunk-part_index: None
-chunk-token_count: 206
-chunk-scope_chain: []
-chunk-content_hash: 7c53653f456f53464a3d6e1bf437d51f0703a8bd4f3ea71844147874d36531fe
-# File: backend/app/db/session.py
-# Language: python
-# Imports: from app.core.config import settings; from sqlalchemy import create_engine; from sqlalchemy.orm import sessionmaker
-
-from app.core.config import settings
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
-database_url = settings.DATABASE_URL
-
-engine = create_engine(
-    url=database_url,
-    echo=False
-)
-
-SessionLocal = sessionmaker(
-    bind=engine,
-    autoflush=False,
-    autocommit=False
-)
-
-# fucntion to create one seesion
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
------------------------------------------
-
-content ---------------------------------
-
-chunk-repo-id: 0ed9cfb7-e88b-5c5c-b9a3-8d349bc9f7d1
-chunk-repo-url: None
-chunk-symbol_ids: ['cfe8cafd-a921-55a3-ba47-6dec6d36b79b', 'b74dda54-e3c7-5a7c-acc6-954eafee58d9']
-chunk-type: merged
-chunk-origin: merged
-chunk-provider: tree-sitter
-chunk-part_total: None
-chunk-is_partial: False
-chunk-part_index: None
-chunk-token_count: 476
-chunk-scope_chain: []
-chunk-content_hash: 56062441e6f88335ab236c202a2330d78225ce5b3c5e0e87850c2b99f6f5b241
-# File: backend/app/main.py
-# Language: python
-# Imports: from fastapi import FastAPI; from app.core.config import settings; from fastapi.middleware.cors import CORSMiddleware; from app.api.routes.auth import router as auth_router; from app.api.routes.user import router as user_router; from app.api.routes.project import router as project_router; from app.api.routes.repository import router as repository_router; from app.db.init_db import init_db
-
-from fastapi import FastAPI
-from app.core.config import settings
-from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes.auth import router as auth_router
-from app.api.routes.user import router as user_router
-from app.api.routes.project import router as project_router
-from app.api.routes.repository import router as repository_router
-
-from app.db.init_db import init_db
-
-init_db()
-
-app = FastAPI()
-
-app.include_router(auth_router)
-app.include_router(user_router)
-app.include_router(project_router)
-app.include_router(repository_router)
-
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[settings.VITE_FRONTEND_API_URL],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"]
-)
-
-@app.get("/")
-def root():
-    return {
-        "app_name": settings.APP_NAME,
-        "environment": settings.ENVIRONMENT
-    }
-    
-@app.get("/health")
-def health():
-    return {
-        "status": "ok",
-        "service": "ai-copilot-backend"
-    }
------------------------------------------
-
-content ---------------------------------
-
-chunk-repo-id: f356fa27-6ba9-5174-a7a5-2149a0dab98b
-chunk-repo-url: None
-chunk-symbol_ids: ['7816d5ab-76ab-5fba-a7e9-85d0d8424811', '1b672352-0fc0-54e8-9ec8-62b1e35ffc1f']
+chunk-symbol_ids: ['924c5899-bd41-55ce-89e8-26cb23b403f3', '283440b4-0c90-516b-99b3-937c61dfd1b5']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -1604,9 +1150,9 @@ class Project(Base):
 
 content ---------------------------------
 
-chunk-repo-id: 71b5848d-6c0f-5257-abf1-c0393c094cea
+chunk-repo-id: e4ae4d10-7787-5b7b-8247-c9ff14ea7b6e
 chunk-repo-url: None
-chunk-symbol_ids: ['898094db-0165-5846-aecc-74a421beeed9']
+chunk-symbol_ids: ['5a132db0-49ea-52c0-87e9-5a0ce7d08a46']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -1645,9 +1191,9 @@ class SourceType(str, Enum):
 
 content ---------------------------------
 
-chunk-repo-id: bef1b025-8b0f-51e6-ba6d-6a0911f83751
+chunk-repo-id: ae7690a5-6680-5cad-86a7-e5e4b8fa2de0
 chunk-repo-url: None
-chunk-symbol_ids: ['af8a66ba-59f1-56b5-8f0a-2456110c0831']
+chunk-symbol_ids: ['70e329f8-5547-59d1-a348-23fb8bbb79fb']
 chunk-type: class
 chunk-origin: query_symbol
 chunk-provider: tree-sitter
@@ -1754,9 +1300,9 @@ class Repository(Base):
 
 content ---------------------------------
 
-chunk-repo-id: a533d05e-3e6d-5002-b08a-6a2ac3407f1e
+chunk-repo-id: 6568572c-432c-5965-92ae-6d3061f80ceb
 chunk-repo-url: None
-chunk-symbol_ids: ['14f8100d-0e43-5609-bb7a-5098472ff8b5']
+chunk-symbol_ids: ['707aa00c-4142-5289-a4c6-2a1e255c1aa8']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -1845,7 +1391,7 @@ class RepositoryBranch(Base):
 
 content ---------------------------------
 
-chunk-repo-id: c37f1cb2-c321-5238-b74c-fbb6bb65e310
+chunk-repo-id: bab1fa9d-f6a3-5afa-97c9-38e73002bdcd
 chunk-repo-url: None
 chunk-symbol_ids: []
 chunk-type: gap
@@ -1854,27 +1400,69 @@ chunk-provider: tree-sitter
 chunk-part_total: None
 chunk-is_partial: False
 chunk-part_index: None
-chunk-token_count: 102
+chunk-token_count: 202
 chunk-scope_chain: []
-chunk-content_hash: acf23e8355485fb0aecccdeb469041fdab24fa3644c4cd9421470a21c179ba21
-# File: frontend/vite.config.ts
-# Language: typescript
-# Imports: import react from '@vitejs/plugin-react'; import { defineConfig } from 'vite'
+chunk-content_hash: 75f78400d46a83469e9624d817976f475153346c64e0d05a6bc5f8f12091f72a
+# File: backend/app/models/repository_file.py
+# Language: python
+# Imports: from datetime import datetime; from uuid import uuid4; from sqlalchemy import (
+    String,
+    DateTime,
+    ForeignKey,
+    BigInteger,
+    UniqueConstraint,
+    Index
+); from sqlalchemy.orm import Mapped, mapped_column, relationship; from app.db.base import Base
 
-import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
-
-// https://vite.dev/config/
-export default defineConfig({
-  plugins: [react()],
-})
+from datetime import datetime
+from uuid import uuid4
+from sqlalchemy import (
+    String,
+    DateTime,
+    ForeignKey,
+    BigInteger,
+    UniqueConstraint,
+    Index
+)
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from app.db.base import Base
 -----------------------------------------
 
 content ---------------------------------
 
-chunk-repo-id: 07acc155-e534-5392-8a4f-3b286e90dc6c
+chunk-repo-id: 0ee76926-24c7-5117-b3c1-c76c2d5d6af1
 chunk-repo-url: None
-chunk-symbol_ids: ['b8e51352-172d-5b6a-941e-9cafa2ba7013']
+chunk-symbol_ids: ['78af9a8f-55a1-5676-979e-772deab1ed34']
+chunk-type: class
+chunk-origin: query_symbol_split
+chunk-provider: tree-sitter
+chunk-part_total: 3
+chunk-is_partial: True
+chunk-part_index: 0
+chunk-token_count: 145
+chunk-scope_chain: ['RepositoryFile']
+chunk-content_hash: d5c5a045fe59e4a8911e8d7d904b2a0d3434e1ef800ffa2428fa4d1daf97e8be
+# File: backend/app/models/repository_file.py
+# Language: python
+# Scope: RepositoryFile
+# Signature: class RepositoryFile(Base):
+# Imports: from datetime import datetime; from uuid import uuid4; from sqlalchemy import (
+    String,
+    DateTime,
+    ForeignKey,
+    BigInteger,
+    UniqueConstraint,
+    Index
+); from sqlalchemy.orm import Mapped, mapped_column, relationship; from app.db.base import Base
+
+class RepositoryFile(Base):
+-----------------------------------------
+
+content ---------------------------------
+
+chunk-repo-id: fbc7167d-f23d-5287-997e-0b88e63af9d9
+chunk-repo-url: None
+chunk-symbol_ids: ['78af9a8f-55a1-5676-979e-772deab1ed34']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -1974,9 +1562,9 @@ __tablename__ = "repository_files"
 
 content ---------------------------------
 
-chunk-repo-id: cc116287-e119-5726-8144-760c1b246477
+chunk-repo-id: bf65207b-29ce-5b80-9606-fda8c95b5374
 chunk-repo-url: None
-chunk-symbol_ids: ['b8e51352-172d-5b6a-941e-9cafa2ba7013']
+chunk-symbol_ids: ['78af9a8f-55a1-5676-979e-772deab1ed34']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -2012,9 +1600,9 @@ repository: Mapped["Repository"] = relationship(  # type: ignore
 
 content ---------------------------------
 
-chunk-repo-id: ff274085-9cef-52b2-8818-5f91e1851a8d
+chunk-repo-id: c0fc6be3-4cb4-5057-a886-a1c0a3df163a
 chunk-repo-url: None
-chunk-symbol_ids: ['79076de6-7804-5397-b4d9-9dae4bc31d93']
+chunk-symbol_ids: ['e3b7ffaf-1f90-55e0-a4d0-f6dc6346e8a7']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -2077,9 +1665,9 @@ class User(Base):
 
 content ---------------------------------
 
-chunk-repo-id: 9c049a50-65c3-5b56-8266-a05004096c74
+chunk-repo-id: 3590acd7-52c7-51dd-a81d-3fc742d3190c
 chunk-repo-url: None
-chunk-symbol_ids: ['7c0e7995-064d-5682-bd0a-865c6ca2f4a7']
+chunk-symbol_ids: ['7d31f715-e89a-588f-964b-b62902398ca2']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -2119,9 +1707,9 @@ class IndexingJobResponse(BaseModel):
 
 content ---------------------------------
 
-chunk-repo-id: 17721dc9-480d-5017-a801-c93cccf65c31
+chunk-repo-id: d2038ee0-1225-5ef5-9cd9-d55d350bc0f7
 chunk-repo-url: None
-chunk-symbol_ids: ['13f80aab-1671-58f0-82ca-e62c834d990e', '8104b869-5b37-56d9-92a1-851504125f36', '5102e674-806b-5628-8841-24868b523df7', '5183bed0-4595-5b84-81d6-3686c6345da9']
+chunk-symbol_ids: ['03ada5e5-a4cc-5bc5-8855-106d14c95ac0', '6e235319-3f25-56a1-9a75-2944819b2a6d', 'b16d6d7f-7b8b-5e6a-8811-e2aa27663acc', 'c9490142-fbac-5bf3-a003-dd92a8bef733']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -2176,9 +1764,9 @@ class ProjectResponse(BaseModel):
 
 content ---------------------------------
 
-chunk-repo-id: 92ce0e7c-5945-5b75-8c74-98a866f0df2d
+chunk-repo-id: 49dc7b26-5f3e-586e-9f49-144b54ad334b
 chunk-repo-url: None
-chunk-symbol_ids: ['c33ae361-d274-57f8-b193-c79c32383dde']
+chunk-symbol_ids: ['3a075cb4-e594-5647-9d5d-183df0b6f336']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -2214,9 +1802,9 @@ class RepositoryCreate(BaseModel):
 
 content ---------------------------------
 
-chunk-repo-id: e2063d58-7fe7-5d76-adde-d6500f5cb4a8
+chunk-repo-id: 768910f1-5e1a-5e46-a639-bc7aea2e3311
 chunk-repo-url: None
-chunk-symbol_ids: ['1acb437b-3982-531d-a607-386104b70b8c', '06df0154-102f-5334-8f7b-d476b365e1d2', '694cdce2-8c14-508c-9c79-b6b93fea9f32', '0627a5f3-ab26-5e84-937c-0c10d17d8291']
+chunk-symbol_ids: ['064abf12-a7d9-5b2e-a4e6-2113e9f2d401', '3f439241-a04f-545f-a695-56e256cdefd4', '874d8575-d1ab-57a0-ad61-819bf74e44ee', '2c9a2d11-bae5-5928-ada8-6fbb9364b4a1']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -2268,9 +1856,9 @@ class RepositoryResponse(BaseModel):
 
 content ---------------------------------
 
-chunk-repo-id: b6f0befb-a33d-58b3-97fa-72f98ecd6635
+chunk-repo-id: 3a6c761c-71fc-5d32-929d-322c243f5d02
 chunk-repo-url: None
-chunk-symbol_ids: ['545a6707-1d85-5128-ab82-9f2c2a13a4ad', 'd7b83b1b-b5b7-5cf8-9efe-0380ee3f08e6', 'e3656824-1e6c-55a2-8b52-ec7d3d8d2ce5', '0aac15dc-a1ef-5d4f-a056-29a97851fb6f']
+chunk-symbol_ids: ['dc28f556-946b-5a1d-82ad-be299c243fcb', '7a927ec4-9c2d-587f-a62c-65b16979180e', '3973b5a2-995e-505c-aa7d-7fdbba7480d4', '4d5f281f-6085-5a75-92ed-ff22c4a95246']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -2319,7 +1907,7 @@ class LoginResponse(BaseModel):
 
 content ---------------------------------
 
-chunk-repo-id: 85f0ea70-161c-5205-a6e4-550c90d127f8
+chunk-repo-id: a024af89-3f87-5480-b7fd-2c738082b09c
 chunk-repo-url: None
 chunk-symbol_ids: []
 chunk-type: gap
@@ -2350,9 +1938,32 @@ from app.services.repositories.file_discovery_service import FileDiscoveryServic
 
 content ---------------------------------
 
-chunk-repo-id: 5ed664d1-99c6-531b-808b-55ee68d80867
+chunk-repo-id: 5dc7337a-de68-5875-b5c5-fcfb2cf7636a
 chunk-repo-url: None
-chunk-symbol_ids: ['b7d44bd6-d957-5749-a827-2870ea17dea1']
+chunk-symbol_ids: ['ae61361c-7647-54b4-8e3d-fc331c14269a']
+chunk-type: class
+chunk-origin: query_symbol_split
+chunk-provider: tree-sitter
+chunk-part_total: 12
+chunk-is_partial: True
+chunk-part_index: 0
+chunk-token_count: 193
+chunk-scope_chain: ['IndexingService']
+chunk-content_hash: ea1005fc965356767d4ed1c8938023859dfcdbc880829ff370856c4705973d42
+# File: backend/app/services/indexing/indexing_service.py
+# Language: python
+# Scope: IndexingService
+# Signature: class IndexingService:
+# Imports: from datetime import datetime, timezone; from pathlib import Path; from sqlalchemy.orm import Session; from app.models.repository import Repository; from app.models.repository_branch import RepositoryBranch; from app.models.indexing_jobs import IndexingJob, JobStatus; from app.models.repository_file import RepositoryFile; from app.services.repositories.file_discovery_service import FileDiscoveryService
+
+class IndexingService:
+-----------------------------------------
+
+content ---------------------------------
+
+chunk-repo-id: 172f664e-74a7-518a-a769-c91960911eec
+chunk-repo-url: None
+chunk-symbol_ids: ['ae61361c-7647-54b4-8e3d-fc331c14269a']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -2375,9 +1986,9 @@ def __init__(self, db: Session):
 
 content ---------------------------------
 
-chunk-repo-id: d7a0f3cf-b525-5731-a8cc-ee226fbdabd3
+chunk-repo-id: e148289f-67dd-57e4-bb5e-bda5176deef7
 chunk-repo-url: None
-chunk-symbol_ids: ['6ee68766-1810-596c-99f2-6849192eed66']
+chunk-symbol_ids: ['d3eb52f9-d76e-5250-88e3-9b969ae5ffff']
 chunk-type: method
 chunk-origin: query_symbol
 chunk-provider: tree-sitter
@@ -2400,9 +2011,9 @@ def __init__(self, db: Session):
 
 content ---------------------------------
 
-chunk-repo-id: 579c11e9-c08f-5aa6-9ed8-2b14feb95b5b
+chunk-repo-id: 485163b2-094e-5fb5-93ed-55395b1e7a52
 chunk-repo-url: None
-chunk-symbol_ids: ['b7d44bd6-d957-5749-a827-2870ea17dea1']
+chunk-symbol_ids: ['ae61361c-7647-54b4-8e3d-fc331c14269a']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -2426,9 +2037,9 @@ def index_repository(
 
 content ---------------------------------
 
-chunk-repo-id: 31685e3b-8c2f-5ea6-81c3-fb9c9a802e76
+chunk-repo-id: 9ff8e72f-b94e-5b64-958e-8779188dad9c
 chunk-repo-url: None
-chunk-symbol_ids: ['cea4546a-9984-5b78-94d4-f0fa6faea0c6']
+chunk-symbol_ids: ['95828811-1b32-5c1b-aa12-58bd6b413cd6']
 chunk-type: method
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -2452,9 +2063,9 @@ def index_repository(
 
 content ---------------------------------
 
-chunk-repo-id: 69e23399-7930-500a-a014-18110efcb587
+chunk-repo-id: 72b3f23b-a6a2-5d53-aa92-532a0e3b6c6f
 chunk-repo-url: None
-chunk-symbol_ids: ['b7d44bd6-d957-5749-a827-2870ea17dea1']
+chunk-symbol_ids: ['ae61361c-7647-54b4-8e3d-fc331c14269a']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -2505,9 +2116,9 @@ chunk-content_hash: 3b1ca5858c7789f8aa085346f11e78aafffe760c853c3cc34df29ef59d66
 
 content ---------------------------------
 
-chunk-repo-id: 9e0c9f88-ea22-5a0f-8672-b0d3359080f2
+chunk-repo-id: f12f9265-01b8-5e65-a2fe-620f46647062
 chunk-repo-url: None
-chunk-symbol_ids: ['cea4546a-9984-5b78-94d4-f0fa6faea0c6']
+chunk-symbol_ids: ['95828811-1b32-5c1b-aa12-58bd6b413cd6']
 chunk-type: method
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -2558,9 +2169,9 @@ chunk-content_hash: 3b1ca5858c7789f8aa085346f11e78aafffe760c853c3cc34df29ef59d66
 
 content ---------------------------------
 
-chunk-repo-id: 69bd96a5-896d-5527-a07a-f2b08fe0d86c
+chunk-repo-id: 8eb11d2d-7498-56c8-a0b8-cc4a71fb293a
 chunk-repo-url: None
-chunk-symbol_ids: ['b7d44bd6-d957-5749-a827-2870ea17dea1']
+chunk-symbol_ids: ['ae61361c-7647-54b4-8e3d-fc331c14269a']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -2584,9 +2195,9 @@ try:
 
 content ---------------------------------
 
-chunk-repo-id: 8a84565b-5677-53d2-8d29-c0566e65f55d
+chunk-repo-id: a1674c0c-2ea2-5314-9178-f434056c791b
 chunk-repo-url: None
-chunk-symbol_ids: ['cea4546a-9984-5b78-94d4-f0fa6faea0c6']
+chunk-symbol_ids: ['95828811-1b32-5c1b-aa12-58bd6b413cd6']
 chunk-type: method
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -2610,9 +2221,9 @@ try:
 
 content ---------------------------------
 
-chunk-repo-id: eda20868-6d8e-5d96-b8fb-b9fd526aa8d3
+chunk-repo-id: 742acf5b-73d3-5dde-a8e7-231c66209122
 chunk-repo-url: None
-chunk-symbol_ids: ['b7d44bd6-d957-5749-a827-2870ea17dea1']
+chunk-symbol_ids: ['ae61361c-7647-54b4-8e3d-fc331c14269a']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -2647,9 +2258,9 @@ job.status = JobStatus.RUNNING
 
 content ---------------------------------
 
-chunk-repo-id: d43bd4d5-2f2c-57f9-abb4-7d34df018b01
+chunk-repo-id: 54297b3a-81a9-54c7-b6b0-b3418619d80b
 chunk-repo-url: None
-chunk-symbol_ids: ['cea4546a-9984-5b78-94d4-f0fa6faea0c6']
+chunk-symbol_ids: ['95828811-1b32-5c1b-aa12-58bd6b413cd6']
 chunk-type: method
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -2684,9 +2295,9 @@ job.status = JobStatus.RUNNING
 
 content ---------------------------------
 
-chunk-repo-id: 3f18d331-eae5-57b8-bc32-0408eafaed39
+chunk-repo-id: 0fa97c54-f5e7-5de9-b3d1-f3b68030606a
 chunk-repo-url: None
-chunk-symbol_ids: ['b7d44bd6-d957-5749-a827-2870ea17dea1']
+chunk-symbol_ids: ['ae61361c-7647-54b4-8e3d-fc331c14269a']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -2707,9 +2318,32 @@ for branch in branches:
 
 content ---------------------------------
 
-chunk-repo-id: 9183f6b8-a6d1-5a6f-bda5-df4d273fe93d
+chunk-repo-id: 97c8c1cf-46e8-5ea0-8bc1-b7b8fb520b75
 chunk-repo-url: None
-chunk-symbol_ids: ['b7d44bd6-d957-5749-a827-2870ea17dea1']
+chunk-symbol_ids: ['95828811-1b32-5c1b-aa12-58bd6b413cd6']
+chunk-type: method
+chunk-origin: query_symbol_split
+chunk-provider: tree-sitter
+chunk-part_total: 9
+chunk-is_partial: True
+chunk-part_index: 4
+chunk-token_count: 199
+chunk-scope_chain: ['IndexingService', 'index_repository']
+chunk-content_hash: 9581981c3ab9766da322f342378131c6be7245edcafaeed6db182ece4472891a
+# File: backend/app/services/indexing/indexing_service.py
+# Language: python
+# Scope: IndexingService.index_repository
+# Signature: def index_repository(
+# Imports: from datetime import datetime, timezone; from pathlib import Path; from sqlalchemy.orm import Session; from app.models.repository import Repository; from app.models.repository_branch import RepositoryBranch; from app.models.indexing_jobs import IndexingJob, JobStatus; from app.models.repository_file import RepositoryFile; from app.services.repositories.file_discovery_service import FileDiscoveryService
+
+for branch in branches:
+-----------------------------------------
+
+content ---------------------------------
+
+chunk-repo-id: 96caef14-1b01-56d6-af10-99d18a8eeb5b
+chunk-repo-url: None
+chunk-symbol_ids: ['ae61361c-7647-54b4-8e3d-fc331c14269a']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -2748,9 +2382,9 @@ job.branch_name = branch.branch_name
 
 content ---------------------------------
 
-chunk-repo-id: 450fd2d1-1f04-563c-a0d7-e301163e9824
+chunk-repo-id: 76459133-825e-5fc5-be60-b78d51790633
 chunk-repo-url: None
-chunk-symbol_ids: ['cea4546a-9984-5b78-94d4-f0fa6faea0c6']
+chunk-symbol_ids: ['95828811-1b32-5c1b-aa12-58bd6b413cd6']
 chunk-type: method
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -2789,9 +2423,9 @@ job.branch_name = branch.branch_name
 
 content ---------------------------------
 
-chunk-repo-id: 7b73fd43-c5dc-5f38-917c-a6c5e98ea7f2
+chunk-repo-id: da6ad621-d978-5336-bb75-1557c8cf99a3
 chunk-repo-url: None
-chunk-symbol_ids: ['b7d44bd6-d957-5749-a827-2870ea17dea1']
+chunk-symbol_ids: ['ae61361c-7647-54b4-8e3d-fc331c14269a']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -2846,9 +2480,9 @@ for relative_path, file_size in discovered_files.items():
 
 content ---------------------------------
 
-chunk-repo-id: 589b31e7-e315-5120-809b-ee9804d84558
+chunk-repo-id: d1c9d33d-2b6c-52f0-aaa0-b2e0f6662c64
 chunk-repo-url: None
-chunk-symbol_ids: ['cea4546a-9984-5b78-94d4-f0fa6faea0c6']
+chunk-symbol_ids: ['95828811-1b32-5c1b-aa12-58bd6b413cd6']
 chunk-type: method
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -2903,9 +2537,9 @@ for relative_path, file_size in discovered_files.items():
 
 content ---------------------------------
 
-chunk-repo-id: 36c9a6c1-d53f-57f1-a96e-addd736159cc
+chunk-repo-id: 43215d7e-43e3-5a38-9f3c-b46b5f49f350
 chunk-repo-url: None
-chunk-symbol_ids: ['b7d44bd6-d957-5749-a827-2870ea17dea1']
+chunk-symbol_ids: ['ae61361c-7647-54b4-8e3d-fc331c14269a']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -2937,9 +2571,9 @@ chunk-content_hash: 3579c5430625317fb2864be44b3e18e5403f4cbcf4ea129209dd2e31af1b
 
 content ---------------------------------
 
-chunk-repo-id: d4e2f33e-4728-5ddb-8bde-d7b725961d48
+chunk-repo-id: da62dd47-74a7-542c-beba-7130005f2064
 chunk-repo-url: None
-chunk-symbol_ids: ['cea4546a-9984-5b78-94d4-f0fa6faea0c6']
+chunk-symbol_ids: ['95828811-1b32-5c1b-aa12-58bd6b413cd6']
 chunk-type: method
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -2971,9 +2605,9 @@ chunk-content_hash: 3579c5430625317fb2864be44b3e18e5403f4cbcf4ea129209dd2e31af1b
 
 content ---------------------------------
 
-chunk-repo-id: 6374a240-37c2-55ce-b841-3e1b0ecd3825
+chunk-repo-id: df12f260-503a-5005-a419-1c9d54282135
 chunk-repo-url: None
-chunk-symbol_ids: ['b7d44bd6-d957-5749-a827-2870ea17dea1']
+chunk-symbol_ids: ['ae61361c-7647-54b4-8e3d-fc331c14269a']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -3005,9 +2639,9 @@ except Exception as exc:
 
 content ---------------------------------
 
-chunk-repo-id: b57228bc-74c8-51e1-8da6-2076076d0c2b
+chunk-repo-id: 36f5fafe-f44d-53d1-a8a5-07f5a38c9f85
 chunk-repo-url: None
-chunk-symbol_ids: ['cea4546a-9984-5b78-94d4-f0fa6faea0c6']
+chunk-symbol_ids: ['95828811-1b32-5c1b-aa12-58bd6b413cd6']
 chunk-type: method
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -3039,9 +2673,9 @@ except Exception as exc:
 
 content ---------------------------------
 
-chunk-repo-id: 9e4bb2e0-de0b-55e9-8c0b-22fa6f31df86
+chunk-repo-id: 2c271067-599f-50cc-8e48-dc00c96ee2bf
 chunk-repo-url: None
-chunk-symbol_ids: ['b7d44bd6-d957-5749-a827-2870ea17dea1']
+chunk-symbol_ids: ['ae61361c-7647-54b4-8e3d-fc331c14269a']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -3073,9 +2707,9 @@ chunk-content_hash: d1bdff326d147e67c9e95b36ecdea8c9df8949830234ec7e69ac8dffa415
 
 content ---------------------------------
 
-chunk-repo-id: 23a86022-a10e-558c-b53f-8371c133fa8b
+chunk-repo-id: 44418e45-a40a-5ccf-8a6c-86df0b14e317
 chunk-repo-url: None
-chunk-symbol_ids: ['d42dcdbd-1e87-5018-bee1-51f9668c026a']
+chunk-symbol_ids: ['b1d18a69-91f2-50b8-bd5e-16ce34569a55']
 chunk-type: method
 chunk-origin: query_symbol
 chunk-provider: tree-sitter
@@ -3103,9 +2737,9 @@ def _index_file(
 
 content ---------------------------------
 
-chunk-repo-id: 26578b36-7388-5c80-9924-c39c8b04ef89
+chunk-repo-id: ad4facc5-6f78-5c4a-a611-00efeb8cf87b
 chunk-repo-url: None
-chunk-symbol_ids: ['b94887ee-4cb9-5492-811a-eaba6eaa9dda']
+chunk-symbol_ids: ['8dfc9cc5-811a-58ae-bbe1-36b75a29c7e4']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -3200,9 +2834,9 @@ class ProjectService:
 
 content ---------------------------------
 
-chunk-repo-id: bef31033-a79e-5364-afe2-2f2447085b61
+chunk-repo-id: 04a744f4-7775-5390-b0ab-4d7176d95f18
 chunk-repo-url: None
-chunk-symbol_ids: ['e9def6df-8dbe-5070-bc61-6cf9b9fda916', '37241ba3-e9e7-5a70-a569-cffa970ada72', '55bbe173-9f0a-5d6b-93d4-a60976b2aab1', '71d0903b-fc8c-5e27-8b6e-c2931ec43a0a', 'd52666f6-12ce-5506-8561-b0ebf91cc8cd']
+chunk-symbol_ids: ['4d0a2f87-05e0-5c90-aed3-9ed1c739586c', 'f28069a7-efb9-5300-8619-1bb25aeed680', '799814c4-327b-53f3-89cf-5089bf4d756b', 'fd8e18a5-c3be-5a73-bd5b-b944514af5d2', 'd6c2e737-9903-5b39-bcd3-ce310da287c2']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -3289,7 +2923,7 @@ def __init__(self, db: Session):
 
 content ---------------------------------
 
-chunk-repo-id: 36f22f45-9b8a-55ca-af42-cb1865ad9277
+chunk-repo-id: f8b5fc59-3f36-5171-97bc-dc44cca5529a
 chunk-repo-url: None
 chunk-symbol_ids: []
 chunk-type: gap
@@ -3331,9 +2965,9 @@ MAX_FILE_SIZE = 2 * 1024 * 1024
 
 content ---------------------------------
 
-chunk-repo-id: 57151bac-c7bf-5918-92df-ca1dcecff705
+chunk-repo-id: 71215f25-80fa-5ea1-8446-9c498a89be73
 chunk-repo-url: None
-chunk-symbol_ids: ['a59d66c0-8421-5613-84d7-7dcc1c37bef1']
+chunk-symbol_ids: ['bfdb94b1-cb91-5327-ac5e-98b4c9104fc7']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -3354,9 +2988,33 @@ class FileDiscoveryService:
 
 content ---------------------------------
 
-chunk-repo-id: 2db8cb42-9b2d-5b1e-ac4e-a8b471c30bc3
+chunk-repo-id: db78f586-87a8-53c5-8929-8abd9f591a13
 chunk-repo-url: None
-chunk-symbol_ids: ['a59d66c0-8421-5613-84d7-7dcc1c37bef1']
+chunk-symbol_ids: ['73fc2ec4-cd58-5e02-b525-1df6d1567c4d']
+chunk-type: method
+chunk-origin: query_symbol
+chunk-provider: tree-sitter
+chunk-part_total: None
+chunk-is_partial: False
+chunk-part_index: None
+chunk-token_count: 106
+chunk-scope_chain: ['FileDiscoveryService', '__init__']
+chunk-content_hash: c35bf263f9049eee9557b07822f220a5645ddf28347d309cddbcfcefa3c8347a
+# File: backend/app/services/repositories/file_discovery_service.py
+# Language: python
+# Scope: FileDiscoveryService.__init__
+# Signature: def __init__(self, db: Session):
+# Imports: import subprocess; from pathlib import Path; from sqlalchemy.orm import Session
+
+def __init__(self, db: Session):
+        self.db = db
+-----------------------------------------
+
+content ---------------------------------
+
+chunk-repo-id: a5336309-6022-536c-9503-227386541b7d
+chunk-repo-url: None
+chunk-symbol_ids: ['bfdb94b1-cb91-5327-ac5e-98b4c9104fc7']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -3450,9 +3108,9 @@ def __init__(self, db: Session):
 
 content ---------------------------------
 
-chunk-repo-id: 18a10e68-f9ca-5105-bcaa-ac13b6799c12
+chunk-repo-id: 293737b1-06e7-5cfe-ae19-049932be4593
 chunk-repo-url: None
-chunk-symbol_ids: ['5f2f9886-4663-5b76-9427-7ed09e51b748', '6c4762da-d05f-5ae6-8b9f-96571f8cd8d4']
+chunk-symbol_ids: ['a02f55c4-0462-5e99-9a46-ba4e87bc50b6', '2bd7b437-931b-5da1-85a0-5d031a1e354d']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -3541,9 +3199,9 @@ def discover(
 
 content ---------------------------------
 
-chunk-repo-id: b685f053-a82a-59b6-9bce-eed59fa14d9d
+chunk-repo-id: ebf0bd85-1104-5eea-83ec-93c02cb605c4
 chunk-repo-url: None
-chunk-symbol_ids: ['a59d66c0-8421-5613-84d7-7dcc1c37bef1']
+chunk-symbol_ids: ['bfdb94b1-cb91-5327-ac5e-98b4c9104fc7']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -3585,9 +3243,9 @@ def _get_file_size(
 
 content ---------------------------------
 
-chunk-repo-id: 7a88a895-e6a4-588b-bfcc-b8f61b5ebc4c
+chunk-repo-id: ae8bcd15-6e0d-51b6-8cd6-25cbe42a4ba0
 chunk-repo-url: None
-chunk-symbol_ids: ['9e8deff8-0cfc-5a19-9e5b-ef6526ca40a3']
+chunk-symbol_ids: ['894d15ff-b062-5d39-8eb6-7c49df24dc26']
 chunk-type: method
 chunk-origin: query_symbol
 chunk-provider: tree-sitter
@@ -3629,7 +3287,7 @@ def _get_file_size(
 
 content ---------------------------------
 
-chunk-repo-id: f4706a23-ccf0-54cb-95fa-1a1fb4ac597c
+chunk-repo-id: ea4c84ad-1082-5198-9bab-90e4870a8006
 chunk-repo-url: None
 chunk-symbol_ids: []
 chunk-type: gap
@@ -3672,9 +3330,9 @@ from app.services.indexing.indexing_service import IndexingService
 
 content ---------------------------------
 
-chunk-repo-id: 551284c8-e36d-584b-9729-78a95c8e4720
+chunk-repo-id: 354db9f7-8918-51d1-92d7-1d93962189fd
 chunk-repo-url: None
-chunk-symbol_ids: ['851792ff-6a38-573b-81cf-9113e1b39fd7']
+chunk-symbol_ids: ['b088124b-c544-5e9e-8cd7-939a7d631ce0']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -3695,9 +3353,9 @@ class RepositoryService:
 
 content ---------------------------------
 
-chunk-repo-id: 08e27fbe-457d-5ab1-9e40-9e87c558011e
+chunk-repo-id: ffaded15-5a73-52ad-a950-624b9e882349
 chunk-repo-url: None
-chunk-symbol_ids: ['1d7f27e7-38b1-5656-beb4-fdf86eb26242']
+chunk-symbol_ids: ['63f29e79-b004-5765-a4fd-151e9310798c']
 chunk-type: method
 chunk-origin: query_symbol
 chunk-provider: tree-sitter
@@ -3721,9 +3379,9 @@ def __init__(self, db: Session):
 
 content ---------------------------------
 
-chunk-repo-id: 6be28060-6c34-5ecb-ab68-1603c0897cba
+chunk-repo-id: 934fa7e9-dc3b-5c6e-be5e-103725db037e
 chunk-repo-url: None
-chunk-symbol_ids: ['851792ff-6a38-573b-81cf-9113e1b39fd7']
+chunk-symbol_ids: ['b088124b-c544-5e9e-8cd7-939a7d631ce0']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -3805,9 +3463,9 @@ def __init__(self, db: Session):
 
 content ---------------------------------
 
-chunk-repo-id: e67a1c14-b2a8-50a0-866e-b7ddd41f6fd7
+chunk-repo-id: 9ca94616-3368-5f59-8471-d612b9c7b27b
 chunk-repo-url: None
-chunk-symbol_ids: ['cc282eec-59d8-5d01-94ad-8bd8af7348eb', '140bed99-4e4b-58b3-b7ea-429b128618f4', 'd0c0bae3-177c-559f-8e1b-e2a8cbcf3c7d', '941f27d1-7289-5476-bd48-7db37c69593c']
+chunk-symbol_ids: ['bce46171-6b33-507b-8cc2-355e7b4832d1', '84a792c5-e3bf-542f-abd9-2725cd630d46', 'd3d89948-f377-5cab-8869-33c019dc0613', '72b5910a-e940-5ac3-ab7b-d1307c6a922a']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -3882,9 +3540,9 @@ def list_repositories(self, user_id: str) -> list[Repository]:
 
 content ---------------------------------
 
-chunk-repo-id: 780895ce-3e8f-5c4d-a859-3f26b2358fd9
+chunk-repo-id: 0fb4da85-c9c3-5095-9e98-9e91f7fb9d5e
 chunk-repo-url: None
-chunk-symbol_ids: ['851792ff-6a38-573b-81cf-9113e1b39fd7']
+chunk-symbol_ids: ['b088124b-c544-5e9e-8cd7-939a7d631ce0']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -3910,9 +3568,9 @@ def attach_repository(
 
 content ---------------------------------
 
-chunk-repo-id: 21bbad0c-c8fc-50b1-b21b-bc8f9c64a7db
+chunk-repo-id: 91bad5e8-f2b4-561d-ab8b-64cb3e8def2d
 chunk-repo-url: None
-chunk-symbol_ids: ['0da408f9-a6a9-5bd0-9811-2ddd92939ada']
+chunk-symbol_ids: ['9abfa8a3-17c5-5cf8-bce4-ee683f8be1e0']
 chunk-type: method
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -3938,9 +3596,9 @@ def attach_repository(
 
 content ---------------------------------
 
-chunk-repo-id: 03fca983-5404-5976-87e5-32be3894c758
+chunk-repo-id: 071b9af8-b5ef-5bae-bdaf-2885b84a4379
 chunk-repo-url: None
-chunk-symbol_ids: ['851792ff-6a38-573b-81cf-9113e1b39fd7']
+chunk-symbol_ids: ['b088124b-c544-5e9e-8cd7-939a7d631ce0']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -4015,9 +3673,9 @@ repository = self.get_repository(user_id, repository_id)
 
 content ---------------------------------
 
-chunk-repo-id: 25badc15-d5f3-534c-8e06-9842cc0482f3
+chunk-repo-id: 403a56ef-4a40-520d-b94b-3d5a92b21274
 chunk-repo-url: None
-chunk-symbol_ids: ['0da408f9-a6a9-5bd0-9811-2ddd92939ada']
+chunk-symbol_ids: ['9abfa8a3-17c5-5cf8-bce4-ee683f8be1e0']
 chunk-type: method
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -4092,9 +3750,9 @@ repository = self.get_repository(user_id, repository_id)
 
 content ---------------------------------
 
-chunk-repo-id: 3cb9350a-b516-5bcd-94c2-eb038849523b
+chunk-repo-id: 9b3ee787-3474-580d-ac28-b7f1778ae50c
 chunk-repo-url: None
-chunk-symbol_ids: ['851792ff-6a38-573b-81cf-9113e1b39fd7']
+chunk-symbol_ids: ['b088124b-c544-5e9e-8cd7-939a7d631ce0']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -4160,9 +3818,9 @@ def create_github_repository_for_project(
 
 content ---------------------------------
 
-chunk-repo-id: cb9184f4-4ad4-5b6a-ab33-43a0a3d0a4ad
+chunk-repo-id: 3412a1de-8a5d-5de1-ad8f-ccfabf00c05f
 chunk-repo-url: None
-chunk-symbol_ids: ['79867c08-b780-53f9-bc11-dc98155e326b']
+chunk-symbol_ids: ['0638f221-da03-5055-b813-71262e1f53ba']
 chunk-type: method
 chunk-origin: query_symbol
 chunk-provider: tree-sitter
@@ -4228,9 +3886,9 @@ def create_github_repository_for_project(
 
 content ---------------------------------
 
-chunk-repo-id: 34200c29-5838-5a97-a08d-c2f82faec9f3
+chunk-repo-id: 0370ebba-57e3-5fb9-ab5c-5faa1fcdaa69
 chunk-repo-url: None
-chunk-symbol_ids: ['851792ff-6a38-573b-81cf-9113e1b39fd7']
+chunk-symbol_ids: ['b088124b-c544-5e9e-8cd7-939a7d631ce0']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -4256,9 +3914,9 @@ def create_zip_repository_for_project(
 
 content ---------------------------------
 
-chunk-repo-id: 0d0325f4-08ca-5709-9484-5e7f7e91f775
+chunk-repo-id: e86d88b5-8818-5712-b04e-f68ef5f0444f
 chunk-repo-url: None
-chunk-symbol_ids: ['a9d4012e-b093-5ee4-bc57-e660d8a1a84d']
+chunk-symbol_ids: ['64e3478e-9c3b-5a47-9a15-7183bbbb1486']
 chunk-type: method
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -4284,9 +3942,9 @@ def create_zip_repository_for_project(
 
 content ---------------------------------
 
-chunk-repo-id: c15d7e6c-7cb2-57a8-afd7-ed673679ec21
+chunk-repo-id: 8fe1ef40-ba4e-5bfd-a4b9-f6d32cf8b4b5
 chunk-repo-url: None
-chunk-symbol_ids: ['851792ff-6a38-573b-81cf-9113e1b39fd7']
+chunk-symbol_ids: ['b088124b-c544-5e9e-8cd7-939a7d631ce0']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -4332,9 +3990,9 @@ repository = Repository(
 
 content ---------------------------------
 
-chunk-repo-id: 8cbbb84a-03fa-5b1e-bcb7-1a0dabccac44
+chunk-repo-id: f3979e54-f64a-5a5e-9bfb-c7f5e12f017b
 chunk-repo-url: None
-chunk-symbol_ids: ['a9d4012e-b093-5ee4-bc57-e660d8a1a84d']
+chunk-symbol_ids: ['64e3478e-9c3b-5a47-9a15-7183bbbb1486']
 chunk-type: method
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -4380,9 +4038,9 @@ repository = Repository(
 
 content ---------------------------------
 
-chunk-repo-id: f5f6b3c0-b02b-5c5b-822a-0254ccee5578
+chunk-repo-id: ca579c45-9e98-5f76-bab8-8567eeb04482
 chunk-repo-url: None
-chunk-symbol_ids: ['851792ff-6a38-573b-81cf-9113e1b39fd7']
+chunk-symbol_ids: ['b088124b-c544-5e9e-8cd7-939a7d631ce0']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -4429,9 +4087,9 @@ try:
 
 content ---------------------------------
 
-chunk-repo-id: f5da64cc-cca5-5ce5-8a16-465e9fff679c
+chunk-repo-id: 51893adf-1ff2-58b2-9905-396bc3daaf14
 chunk-repo-url: None
-chunk-symbol_ids: ['a9d4012e-b093-5ee4-bc57-e660d8a1a84d']
+chunk-symbol_ids: ['64e3478e-9c3b-5a47-9a15-7183bbbb1486']
 chunk-type: method
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -4478,9 +4136,9 @@ try:
 
 content ---------------------------------
 
-chunk-repo-id: 0ef4e318-f1a9-5b3b-b2af-6a0eca8b2400
+chunk-repo-id: a62db29e-ca5e-5cf1-80cf-cca1b3f0edd9
 chunk-repo-url: None
-chunk-symbol_ids: ['851792ff-6a38-573b-81cf-9113e1b39fd7']
+chunk-symbol_ids: ['b088124b-c544-5e9e-8cd7-939a7d631ce0']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -4543,9 +4201,9 @@ chunk-content_hash: 67c15cb206e256f090ddf91aa0e2a81e69ce66e969ae34026ea056bb66aa
 
 content ---------------------------------
 
-chunk-repo-id: fb97738c-9149-5fb4-a14f-724e75956476
+chunk-repo-id: b2531b6d-3e80-55b9-b034-34ff6a4feff5
 chunk-repo-url: None
-chunk-symbol_ids: ['b84e365b-3502-5981-a32c-b9c9e0444899']
+chunk-symbol_ids: ['c1f6b14c-d29b-5dc8-a10d-ca3b4a6db024']
 chunk-type: method
 chunk-origin: query_symbol
 chunk-provider: tree-sitter
@@ -4607,9 +4265,9 @@ def _create_finalized_repository(
 
 content ---------------------------------
 
-chunk-repo-id: 785689e0-daf7-5496-bc76-b306de99a8db
+chunk-repo-id: a03a64b1-fc72-52c5-b5a9-cb96310ee530
 chunk-repo-url: None
-chunk-symbol_ids: ['abcbd3f9-e5e7-57ec-a4bb-db0b74957bc7']
+chunk-symbol_ids: ['277821a6-b661-5c62-af59-6837d56b6284']
 chunk-type: method
 chunk-origin: query_symbol
 chunk-provider: tree-sitter
@@ -4653,9 +4311,9 @@ def detach_repository_from_project(
 
 content ---------------------------------
 
-chunk-repo-id: ccff0d24-0a6f-5d29-b8fc-f369bdd4152a
+chunk-repo-id: 568bacdd-4323-5458-a686-632134ad46b8
 chunk-repo-url: None
-chunk-symbol_ids: ['851792ff-6a38-573b-81cf-9113e1b39fd7']
+chunk-symbol_ids: ['b088124b-c544-5e9e-8cd7-939a7d631ce0']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -4736,9 +4394,9 @@ def detach_repository_from_project(
 
 content ---------------------------------
 
-chunk-repo-id: 333daefc-28d0-589c-bab5-49b4de66c557
+chunk-repo-id: a1c45c66-4cfd-5de5-89e0-1ced7dee821d
 chunk-repo-url: None
-chunk-symbol_ids: ['d2504f30-086e-58ff-ac2a-e72e7a7be37f', 'bfa7c7fa-671f-5671-8cd3-2cc7cc5d543f', '9333885b-bc1f-5da5-817e-32d8e9c88c78', '33567251-93a5-59dd-af8f-7a89403b9a29']
+chunk-symbol_ids: ['2cf686cc-ceb2-5c28-b836-7eaebc12dd70', '6e671f88-6e8d-5de4-bc87-e374844b3613', '723cd46b-f46a-5ccd-a9ad-dbac4b0f948f', 'a59593f0-29f7-5cd6-829d-5dbfeaaa9e32']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -4801,9 +4459,9 @@ def is_repository_orphan(self, user_id: str, repository_id: str) -> bool:
 
 content ---------------------------------
 
-chunk-repo-id: 364a491c-27f7-57b9-bf11-d5ca518e64b7
+chunk-repo-id: 1b4a3d47-f7f2-5840-84e1-7c1e266bf0ef
 chunk-repo-url: None
-chunk-symbol_ids: ['851792ff-6a38-573b-81cf-9113e1b39fd7']
+chunk-symbol_ids: ['b088124b-c544-5e9e-8cd7-939a7d631ce0']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -4886,9 +4544,9 @@ def get_index_jobs(
 
 content ---------------------------------
 
-chunk-repo-id: 22250c44-bc5d-5dad-944f-a66028d280d6
+chunk-repo-id: ecbc9e09-0408-5df9-8097-9e7f596d8a6d
 chunk-repo-url: None
-chunk-symbol_ids: ['797af228-2f2d-56e9-a3bd-3d387e64fae0', '3f7cae20-115b-5913-9204-171e5908023a', 'c61f6e5a-c91e-52d1-b14c-08df5a0c0fa5']
+chunk-symbol_ids: ['b9e24ea2-dfab-546c-a057-5048e543e8ef', 'db6ba9c7-87fb-5625-b870-8f683de8af68', '57b4e229-4664-5547-8a21-e38332fedab8']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -4956,7 +4614,7 @@ def cleanup_repository_if_orphan(self, user_id: str, repository_id: str) -> None
 
 content ---------------------------------
 
-chunk-repo-id: f0916978-f659-5636-b619-ba57b17ccb5a
+chunk-repo-id: 28e235f0-a0b0-5a0c-a7b5-004157df9b9f
 chunk-repo-url: None
 chunk-symbol_ids: []
 chunk-type: gap
@@ -4985,9 +4643,9 @@ _ID_PATTERN = re.compile(r"^[A-Za-z0-9_\-]+$")
 
 content ---------------------------------
 
-chunk-repo-id: 513cc682-97a7-5aaf-baad-72979d947d3c
+chunk-repo-id: 1f499f3a-8e93-503a-8b91-b086cb975a0e
 chunk-repo-url: None
-chunk-symbol_ids: ['65f9f638-e00e-54d0-8bb3-0d523606816d']
+chunk-symbol_ids: ['1eed53b8-3023-5110-8b02-49d3ff6e7025']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -5008,9 +4666,9 @@ class RepositoryStorageService:
 
 content ---------------------------------
 
-chunk-repo-id: 1c832375-9eb0-5bc1-80cd-335efe7fdb5e
+chunk-repo-id: 4d1c05ec-03d8-5be2-8b63-f773177f4114
 chunk-repo-url: None
-chunk-symbol_ids: ['65f9f638-e00e-54d0-8bb3-0d523606816d']
+chunk-symbol_ids: ['1eed53b8-3023-5110-8b02-49d3ff6e7025']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -5059,9 +4717,9 @@ chunk-content_hash: 1596e24f5c1fb440aca4c3993f33245a3ac90e61cd5e66c5bf65d96d2eae
 
 content ---------------------------------
 
-chunk-repo-id: e8cbfe99-7845-53fd-b8ba-6ed46a89b413
+chunk-repo-id: cff34f3b-e80e-5a0b-86bb-0f69678eea36
 chunk-repo-url: None
-chunk-symbol_ids: ['57d7a3f2-a0a4-51e8-9086-f383aa81e834', '10c1b86d-c9ff-57ae-b7a4-f25764976d74', '6a7a33d7-0cd0-54ff-8a33-26f2a4c4d100', 'c8d9efe5-6e53-5d0a-80cb-943a8d7bb5c2']
+chunk-symbol_ids: ['e5c8ae28-d038-5ba2-bfeb-f8e34ee583c7', '6a074369-38b2-50cb-8b71-0511c30a9b5e', '5a95455f-3fc0-5835-8634-f7e2f26be144', 'bcd55f3a-4541-5f1b-9b81-bf0410e0575e']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -5106,9 +4764,9 @@ def __init__(self) -> None:
 
 content ---------------------------------
 
-chunk-repo-id: 3f76d33a-277f-56fb-822e-ffa1ddfeafef
+chunk-repo-id: 06f8ba07-387c-59f7-b25a-fc3df203e625
 chunk-repo-url: None
-chunk-symbol_ids: ['65f9f638-e00e-54d0-8bb3-0d523606816d']
+chunk-symbol_ids: ['1eed53b8-3023-5110-8b02-49d3ff6e7025']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -5169,9 +4827,9 @@ def extract_zip_safely(
 
 content ---------------------------------
 
-chunk-repo-id: 488ac803-8c0b-50f9-b24d-2a451c7fd152
+chunk-repo-id: c4df40f5-f532-594d-a56c-f4a177ecacbc
 chunk-repo-url: None
-chunk-symbol_ids: ['888edf6b-9766-58ef-8f63-41df0ec738a2']
+chunk-symbol_ids: ['24d1dea5-4c6f-5d6d-acc7-d7417137ef8a']
 chunk-type: method
 chunk-origin: query_symbol
 chunk-provider: tree-sitter
@@ -5232,9 +4890,9 @@ def extract_zip_safely(
 
 content ---------------------------------
 
-chunk-repo-id: 2df8a1ce-a19d-5ded-8cc6-0515dc8a3a8c
+chunk-repo-id: 0f146bec-d9b8-5521-9ea8-03d2d2332320
 chunk-repo-url: None
-chunk-symbol_ids: ['65f9f638-e00e-54d0-8bb3-0d523606816d']
+chunk-symbol_ids: ['1eed53b8-3023-5110-8b02-49d3ff6e7025']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -5327,9 +4985,9 @@ def initialize_zip_repository(
 
 content ---------------------------------
 
-chunk-repo-id: 4230beef-b5ec-593e-87bb-9b565e632e8c
+chunk-repo-id: 6157d203-b276-5092-818c-3c1089ebc7c5
 chunk-repo-url: None
-chunk-symbol_ids: ['a5492de3-fe30-5aff-9077-3354b1919c44']
+chunk-symbol_ids: ['9c234952-550a-5906-b8ad-55f9e7f97574']
 chunk-type: method
 chunk-origin: query_symbol
 chunk-provider: tree-sitter
@@ -5422,9 +5080,9 @@ def initialize_zip_repository(
 
 content ---------------------------------
 
-chunk-repo-id: 5fce827b-f565-5df9-8ca8-b1c6f84b49f7
+chunk-repo-id: 3c0cb832-08ce-5b3f-b46b-36bc7729ac5a
 chunk-repo-url: None
-chunk-symbol_ids: ['a6d22dfa-4614-54fe-a679-c4a9f3f75f98']
+chunk-symbol_ids: ['18008d77-085f-5848-bb24-720d74606c7e']
 chunk-type: method
 chunk-origin: query_symbol
 chunk-provider: tree-sitter
@@ -5465,9 +5123,9 @@ def ingest_zip_snapshot(
 
 content ---------------------------------
 
-chunk-repo-id: 66a17a3b-95d2-51fc-b7aa-a19ee7d37fef
+chunk-repo-id: b18dd51f-8906-5973-b31a-b8de3c53f6be
 chunk-repo-url: None
-chunk-symbol_ids: ['65f9f638-e00e-54d0-8bb3-0d523606816d']
+chunk-symbol_ids: ['1eed53b8-3023-5110-8b02-49d3ff6e7025']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -5542,9 +5200,9 @@ def ingest_zip_snapshot(
 
 content ---------------------------------
 
-chunk-repo-id: 3ba64384-5077-5138-a549-64a096056152
+chunk-repo-id: 86a5f4c0-939a-577d-b104-176a4c54ddbe
 chunk-repo-url: None
-chunk-symbol_ids: ['0d375cdb-fec6-5fc7-aec3-87577adfa82f']
+chunk-symbol_ids: ['a561293e-2156-583f-a1a0-73024f89646b']
 chunk-type: method
 chunk-origin: query_symbol
 chunk-provider: tree-sitter
@@ -5596,9 +5254,9 @@ def clone_github_snapshot(
 
 content ---------------------------------
 
-chunk-repo-id: 2b5754d9-48f3-531e-8448-b0f2981806d5
+chunk-repo-id: 8a24a5d1-2ab6-583c-a155-6077a235ff79
 chunk-repo-url: None
-chunk-symbol_ids: ['65f9f638-e00e-54d0-8bb3-0d523606816d']
+chunk-symbol_ids: ['1eed53b8-3023-5110-8b02-49d3ff6e7025']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -5664,9 +5322,9 @@ def validate_git_repository(
 
 content ---------------------------------
 
-chunk-repo-id: a8c5b2d3-85bd-5097-89da-274442b29764
+chunk-repo-id: 1d86f77b-4c1f-5084-b5f5-09e21ee89803
 chunk-repo-url: None
-chunk-symbol_ids: ['f1f7ede2-ffb3-5bb6-9795-2a9352a68c54']
+chunk-symbol_ids: ['6ae8441a-5561-5702-b088-4e2bc4f4cc01']
 chunk-type: method
 chunk-origin: query_symbol
 chunk-provider: tree-sitter
@@ -5732,9 +5390,9 @@ def validate_git_repository(
 
 content ---------------------------------
 
-chunk-repo-id: f1255836-dd29-54df-9452-ddf6e42e8e92
+chunk-repo-id: b4859473-5dc2-5116-85cb-6cd4c0d4a646
 chunk-repo-url: None
-chunk-symbol_ids: ['8af60920-3051-5133-9971-090242d1c7a3']
+chunk-symbol_ids: ['4cccd596-22ed-56bb-a587-fb52147daaf7']
 chunk-type: method
 chunk-origin: query_symbol
 chunk-provider: tree-sitter
@@ -5798,9 +5456,9 @@ def get_git_branches(
 
 content ---------------------------------
 
-chunk-repo-id: 901cf9b9-928d-5b20-8d0f-cf3d73a43cb1
+chunk-repo-id: e92db581-09d8-5338-b09a-4130ca98b404
 chunk-repo-url: None
-chunk-symbol_ids: ['65f9f638-e00e-54d0-8bb3-0d523606816d']
+chunk-symbol_ids: ['1eed53b8-3023-5110-8b02-49d3ff6e7025']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -5893,9 +5551,9 @@ def get_git_branches(
 
 content ---------------------------------
 
-chunk-repo-id: 87f3706c-8484-55cb-b850-4b35adb0da3a
+chunk-repo-id: 6647a43e-4d3f-53aa-b11b-58abe6dcaf72
 chunk-repo-url: None
-chunk-symbol_ids: ['c7c49946-a19f-5856-be6a-de41fff3ca99']
+chunk-symbol_ids: ['923858e6-637a-548e-9482-5d143fa0879f']
 chunk-type: method
 chunk-origin: query_symbol
 chunk-provider: tree-sitter
@@ -5918,9 +5576,9 @@ def _validate_id(value: str) -> None:
 
 content ---------------------------------
 
-chunk-repo-id: 7e8672ef-ac61-5110-bd1a-e0c3b6f28abc
+chunk-repo-id: 593e832c-4266-5748-a3fa-38ae1f33b11e
 chunk-repo-url: None
-chunk-symbol_ids: ['65f9f638-e00e-54d0-8bb3-0d523606816d']
+chunk-symbol_ids: ['1eed53b8-3023-5110-8b02-49d3ff6e7025']
 chunk-type: class
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -5946,9 +5604,9 @@ chunk-content_hash: 7b1fdb43be9a8e6beeafb0e137474295e3c3c39f9d531c9bab678019165d
 
 content ---------------------------------
 
-chunk-repo-id: 6f879b68-ddb4-52b2-80c0-c9d2de4aed9a
+chunk-repo-id: 51159c9e-97fb-5cb0-b267-4e13c67ba8bb
 chunk-repo-url: None
-chunk-symbol_ids: ['2056a028-7132-5325-9842-ad038efcac6c']
+chunk-symbol_ids: ['47f25d57-abbb-560f-924e-6501c11c1cf7']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -6024,9 +5682,9 @@ class UserService:
 
 content ---------------------------------
 
-chunk-repo-id: dc0a09c7-002b-5c57-84d7-e1c31dc9f8ad
+chunk-repo-id: 43e07435-135c-59a1-a32f-0371327781fc
 chunk-repo-url: None
-chunk-symbol_ids: ['fd60f881-32ba-5750-9565-3bd527ac41f4', '92b847c3-1603-5a26-9d1b-99fbbfb4186c', 'fd17b1dd-d5ca-5276-a998-1927c6f86c87', '3e4d3a5f-10ad-50d3-b995-f3a1175354b3']
+chunk-symbol_ids: ['93293311-b248-5d2e-a00d-4e4c47519843', '1f466260-5ca2-5b46-8bc7-f22b8570af1d', '6f334bf4-73bc-5cb6-8365-c26062d87ccf', '4ec7224f-e080-5944-a71e-ee5ec7caeef5']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -6091,7 +5749,7 @@ def __init__(self, db: Session):
 
 content ---------------------------------
 
-chunk-repo-id: f5262500-7341-5ec5-9668-8dce41fc0ce0
+chunk-repo-id: f379ec1b-29f2-5869-8eb0-4015b3c58faa
 chunk-repo-url: None
 chunk-symbol_ids: []
 chunk-type: gap
@@ -6131,7 +5789,7 @@ exec "$@"
 
 content ---------------------------------
 
-chunk-repo-id: b8d7f605-3627-5ff0-996d-ed69e9b6e90c
+chunk-repo-id: 51e2cc63-dea3-5911-9b97-4497d935cd26
 chunk-repo-url: None
 chunk-symbol_ids: []
 chunk-type: gap
@@ -6173,9 +5831,9 @@ export default defineConfig([
 
 content ---------------------------------
 
-chunk-repo-id: 7c4f53d7-06c9-5d80-adf9-6fbb7ec65284
+chunk-repo-id: d1042281-ce7f-58c2-bed0-1de4b0a6cc95
 chunk-repo-url: None
-chunk-symbol_ids: ['295e2f5d-c67f-5010-b2ff-7be39fbd5da1', 'ed95ff5f-5130-5dff-a646-524631d0942f', 'df978afc-523f-5c50-8d2a-0344d09c5e7e', '243ebce7-16b8-537c-a2d3-2b058254d51e', '064ce898-fc64-5e80-bb75-ea42c3623fe2']
+chunk-symbol_ids: ['d259f260-f737-5649-bd9f-334a87061bb3', 'aceb54d2-1f35-54ea-bb78-39157cc9ffab', 'c10bf67f-b7f9-5ef4-99b0-74ce6259093f', '2a1eb2e4-ef32-5ffd-9957-39f5fdc8a0a6', 'd859b540-38de-5a17-94b0-dff722a41a6d']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -6269,9 +5927,68 @@ export default function App() {
 
 content ---------------------------------
 
-chunk-repo-id: e89c869b-5bf3-53a2-a53a-be291bf394c0
+chunk-repo-id: c7fe744d-b375-5fba-87c4-888a449408ad
+chunk-repo-url: https://github.com/BerriAI/clerkie-cli
+chunk-symbol_ids: ['de6b38e2-8483-5474-8b78-a718c1e3e0fa']
+chunk-type: merged
+chunk-origin: merged
+chunk-provider: tree-sitter
+chunk-part_total: None
+chunk-is_partial: False
+chunk-part_index: None
+chunk-token_count: 459
+chunk-scope_chain: []
+chunk-content_hash: a83632d188848fbac874e1e7b3959881814b5fedc82bd3062c29f8a0317b1f42
+# File: ask_clerkie.py
+# Language: python
+# Imports: import requests; from rich import print; from rich.console import Console; from rich.prompt import Prompt; import os; import call_clerkie
+
+import requests
+from rich import print
+from rich.console import Console
+from rich.prompt import Prompt
+import os
+import call_clerkie
+
+# Set the base URL of the Flask app
+base_url = "https://clerkieserverchromeextensionv1.krrishdholakia.repl.co/"
+error_log_path = os.path.expanduser("~") + "/.clerkie-cli/clerkie-src/c.log"
+user_email_path = os.path.expanduser("~") + "/.clerkie-cli/clerkie-src/clerkie.txt"
+
+
+def user_q():
+  console = Console()
+  returned = False
+  user_id = call_clerkie.get_user_id()
+
+  user_query = Prompt.ask("[bold green]:robot: How can I help you?")
+  if user_query.strip() == "":
+    return
+
+  with console.status("[bold green] Clerkie Thinking :robot:") as status:
+      while not returned:
+        response = requests.get(base_url + "/question", params={"user_query": user_query, "user_id": user_id})
+        returned = True
+
+  # Check the status code of the response
+  if response.status_code == 200:
+    # Print the response body
+    clerkie_resp = response.json()["response"].strip()
+    print("[bold green]\nClerkie:robot:: " + clerkie_resp)
+    return response.json()["response"]
+  else:
+    # Print an error message
+    return
+
+
+clerkie_resp = user_q()
+-----------------------------------------
+
+content ---------------------------------
+
+chunk-repo-id: ab5a8fb8-8ca7-57f8-b087-06082d4c27e4
 chunk-repo-url: None
-chunk-symbol_ids: ['d588b29a-7853-5b95-bbc8-b893d140e414', '1d165adf-3a13-551f-9d80-cf0354503bff', '7e7bc5dd-7d2e-5a6d-9a1f-2ed9ebf32718', '1e2555cf-f873-5174-b615-66ea7830781e', '9622366b-1c7e-59c8-b33c-481b110c6bd9', '658e1eb3-2a2d-5262-82fe-25c1d4f382f4']
+chunk-symbol_ids: ['3ae1c6cd-441e-569c-ab22-785394542702', 'bad68503-88ae-5afe-911d-9e71bb1f7747', 'ed39a156-d60d-5126-8bbd-9bd28c19b58c', '85cf2f73-1783-5402-871e-83222bd6e3b1', '6380cef2-f515-5ef9-9650-e4dbd8b9b7d0', 'f5417d56-a632-5056-b724-b019832a82fc']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -6372,9 +6089,9 @@ const forgetProject = (projectId: string) => {
 
 content ---------------------------------
 
-chunk-repo-id: efbd118d-b59b-5b35-9c96-e9c184bf534e
+chunk-repo-id: 4796672c-72b5-533b-9982-56f58bf53855
 chunk-repo-url: None
-chunk-symbol_ids: ['9e035d63-0470-5998-9030-2f529c0e04ae', 'da67eab6-9c92-50a3-816d-bcaac77f55e8', 'bf7dad1d-41ec-51e8-bd2c-ab6fc4457e6e', 'dd4e0910-410b-5dd2-89be-940111061d1c']
+chunk-symbol_ids: ['09491647-c831-51d2-8410-0a5bf88c0ac4', '2791cef6-d1c1-5e5e-9db8-07ac09aad8e7', '95e61971-0f3f-5e0a-86a3-3b1ab9886c51', 'ea96c7d4-f1ce-500e-8d23-33739ca711be']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -6472,9 +6189,9 @@ const register = async () => {
 
 content ---------------------------------
 
-chunk-repo-id: 48c31b65-1965-55e3-8a8a-419187991f47
+chunk-repo-id: 0be252fa-6598-521a-a129-337e5540dbec
 chunk-repo-url: None
-chunk-symbol_ids: ['e378f1a8-8886-5248-8209-06fe755f9922', '39227238-c8e8-556d-bdd4-ff591f497e8b', 'a8dbb347-3ba3-5640-9399-dc27e5ea183b']
+chunk-symbol_ids: ['c88fb7b7-67ed-5881-b91e-63e9342e0fa5', '69578bc7-33d3-535f-a0e7-5a08dfec80b6', 'a08eb8d5-f224-5d7c-ba06-e8287706eeb9']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -6566,9 +6283,9 @@ const importGithubRepository = async () => {
 
 content ---------------------------------
 
-chunk-repo-id: 65f86da2-31f7-5dae-a24a-d72ae4c51752
+chunk-repo-id: 73142fe9-d1e5-5d24-b369-5837c3ba1818
 chunk-repo-url: None
-chunk-symbol_ids: ['9c8088e3-be95-5348-8dc2-e4f2c40e28a3', 'bcd3aa6b-be3d-50d4-a93c-0df0046f4942']
+chunk-symbol_ids: ['cab13b2e-eb9c-5b81-a71d-a8fb9461a60c', '17a67079-dc80-5546-a239-0c22906ea943']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -6649,9 +6366,9 @@ const deleteProject = async () => {
 
 content ---------------------------------
 
-chunk-repo-id: 15f9deae-65e1-5d9a-9e99-5ea840053ee2
+chunk-repo-id: 1ee0ab68-500f-54fa-9e37-2a32845982ed
 chunk-repo-url: None
-chunk-symbol_ids: ['091d53fb-c2aa-525a-8376-522cf8c6a700', 'a563edf7-8e22-5b52-b991-c14bd276b272', '7494dd09-558c-5484-a29d-25a0d2d3f50c', 'f8e74899-15d7-5c0a-9ffe-c45688fd6915', 'fd62aaa7-6a61-56c4-9abe-fa52bbf1bc79', 'dcee6f5c-c2a3-5e47-a94e-410021a2830b']
+chunk-symbol_ids: ['7d409baa-7e79-57ad-a7db-70c2e75cab70', 'daf2e365-9669-553c-99c9-dc9da6a7185d', '9451ea4c-a23f-552b-9570-8161dfca784a', '365d0d8f-c9e6-5222-bdb3-675ac15b1659', '56efa8f3-8a13-5492-9fd2-321232eedc9a', '08343562-4ab3-5937-af6a-26ded846f59f']
 chunk-type: merged
 chunk-origin: merged
 chunk-provider: tree-sitter
@@ -6746,7 +6463,7 @@ const uploadZipRepository = async (file: File) => {
 
 content ---------------------------------
 
-chunk-repo-id: 17d399e8-0f4b-5f50-a934-e3bf06edf87d
+chunk-repo-id: 511abfed-5a1b-5dde-9aeb-e6f64a2466ff
 chunk-repo-url: None
 chunk-symbol_ids: []
 chunk-type: gap
@@ -6796,9 +6513,9 @@ chunk-content_hash: 154841fc0051894c156b1329377b421b25edc40fb9944611bf5e6686713b
 
 content ---------------------------------
 
-chunk-repo-id: 64b3da14-ab4b-59f3-8c79-a3fb6cf24edb
+chunk-repo-id: c175cdbf-79ae-51bb-a37b-7fe8400d39d0
 chunk-repo-url: None
-chunk-symbol_ids: ['13245a9a-c861-5314-af90-f56e20112abd']
+chunk-symbol_ids: ['5d3644d3-121f-5cf6-8600-1b9fc06dceb5']
 chunk-type: method
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -6833,9 +6550,9 @@ return (
 
 content ---------------------------------
 
-chunk-repo-id: 42982420-452d-5424-b215-f54bb88099a1
+chunk-repo-id: 8d2133a7-1687-5a37-a4da-12617fe63a4b
 chunk-repo-url: None
-chunk-symbol_ids: ['25c7a776-4c6c-598c-a4bf-02b791615340']
+chunk-symbol_ids: ['b4511c41-91d4-591b-afb3-3645b11e429d']
 chunk-type: method
 chunk-origin: query_symbol
 chunk-provider: tree-sitter
@@ -6856,9 +6573,9 @@ setSelectedProjectId("")
 
 content ---------------------------------
 
-chunk-repo-id: c7a73cc0-bc2c-5340-8fab-bd39ab8b361c
+chunk-repo-id: 50068d63-4533-581d-81a7-0e429210d6a9
 chunk-repo-url: None
-chunk-symbol_ids: ['13245a9a-c861-5314-af90-f56e20112abd']
+chunk-symbol_ids: ['5d3644d3-121f-5cf6-8600-1b9fc06dceb5']
 chunk-type: method
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -6879,9 +6596,292 @@ chunk-content_hash: 021fb596db81e6d02bf3d2586ee3981fe519f275c0ac9ca76bbcf2ebb409
 
 content ---------------------------------
 
-chunk-repo-id: bd7e7b2b-d1aa-5e66-b273-47a039d0e5ff
+chunk-repo-id: 41d15393-ec14-5352-881e-3d3183bf0d21
+chunk-repo-url: https://github.com/BerriAI/clerkie-cli
+chunk-symbol_ids: ['fdffc84a-6199-5f03-b17e-bfb3ce39c361', 'aab19fb6-ae64-5d02-bc15-e2074667badc']
+chunk-type: merged
+chunk-origin: merged
+chunk-provider: tree-sitter
+chunk-part_total: None
+chunk-is_partial: False
+chunk-part_index: None
+chunk-token_count: 686
+chunk-scope_chain: []
+chunk-content_hash: 244863ed5d0c4d35c2951db2c06c933b78a21f6a9804632b2df2a604808ba3c3
+# File: call_clerkie.py
+# Language: python
+# Imports: import requests; from rich import print; from rich.console import Console; import os
+
+import requests
+from rich import print
+from rich.console import Console
+import os
+
+# Set the base URL of the Flask app
+base_url = "https://clerkieserverchromeextensionv1.krrishdholakia.repl.co/"
+error_log_path = os.path.expanduser("~") + "/.clerkie-cli/clerkie-src/c.log"
+user_email_path = os.path.expanduser("~") + "/.clerkie-cli/clerkie-src/clerkie.txt"
+
+def get_user_id():
+  if not os.path.exists(user_email_path): # if user has not gone through email setup
+    return "default_user"
+  user_id_file = open(user_email_path, 'r')
+  email = ""
+  for line in user_id_file:
+    line = line.strip()
+    if line != "":
+      email = line
+  return email
+
+def debug_terminal():
+  f = open(error_log_path,'r')
+  i = 0
+  error_msg =""
+  for line in f:
+      if i > 50:
+          break
+      error_msg += line.replace('\x00', '') # handle empty bytes, don't send in req
+      i+=1
+  f.close()
+
+  # clear file
+  f = open(error_log_path,'w')
+  f.seek(0)
+  f.close()
+
+  lib_err_msg = """shell_session_save"""
+  if len(error_msg.strip())==0 or "type your request:" in error_msg or lib_err_msg in error_msg: # don't send empty stacktraces
+    return
+
+  # Send a GET request to the app with the user_query argument
+  console = Console()
+  returned = False
+  with console.status("[bold green] Clerkie noticed an error. Thinking :robot:") as status:
+      while not returned:
+        response = requests.get(base_url + "/term", params={"user_query": error_msg, "user_id": get_user_id()})
+        returned = True
+
+  # Check the status code of the response
+  if response.status_code == 200:
+    # Print the response body
+    clerkie_resp = response.json()["response"]
+    print("[bold green]\nClerkie:robot:: " + clerkie_resp.strip())
+    return response.json()["response"]
+  else:
+    # Print an error message
+    return
+    # print("Failed to query the app. Status code: " + str(response.status_code))
+
+clerkie_resp = debug_terminal()
+-----------------------------------------
+
+content ---------------------------------
+
+chunk-repo-id: 8234b8e5-fece-5142-802d-2d918a6806df
+chunk-repo-url: https://github.com/BerriAI/clerkie-cli
+chunk-symbol_ids: ['0720c22d-46d9-5385-8c6b-34aef17541f1', '615be907-e490-52f8-9193-6b6301c3ec04', 'd4103913-c1ad-5741-8905-28dd5bec1a00', '83a14418-e43c-53f8-9efc-b3964a09eca0']
+chunk-type: merged
+chunk-origin: merged
+chunk-provider: tree-sitter
+chunk-part_total: None
+chunk-is_partial: False
+chunk-part_index: None
+chunk-token_count: 690
+chunk-scope_chain: []
+chunk-content_hash: a8876a6123a0af9067c1a5e5792c82bf04c205d4490e759f6ed0af22eba727a7
+# File: install.sh
+# Language: bash
+
+set -e
+
+echo "Starting clerkie-cli install"
+
+python3 -m pip install requests
+python3 -m pip install rich
+
+echo "Done pip installs"
+
+read_email() {
+  valid=0
+  while [ $valid -eq 0 ]; do
+    tput setaf 2
+    echo "Please enter your email address:"
+    tput sgr0
+    read email
+    if [[ $email =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]]; then
+      valid=1
+      echo "Thank you. The email address $email is valid."
+      echo "$email" >>$HOME/.clerkie-cli/clerkie-src/clerkie.txt
+    else
+      echo "Error: The email address $email is not valid. Please try again."
+    fi
+  done
+}
+
+get_latest_release() {
+  REPO_OWNER="ClerkieAI"
+  REPO_NAME="clerkie-cli"
+  local RELEASE_INFO=$(curl -s https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/latest)
+  local RELEASE_URL=$(echo "$RELEASE_INFO" | grep '"zipball_url":' | sed -E 's/.*"([^"]+)".*/\1/')
+  echo "$RELEASE_URL"
+}
+
+
+
+main() {
+    CLERKIE_DIR=$HOME/.clerkie-cli
+    START=$PWD
+    rm -rf $CLERKIE_DIR
+    mkdir -p $CLERKIE_DIR
+    cd $CLERKIE_DIR
+
+    RELEASE_URL=$(get_latest_release)
+    echo "$RELEASE_URL"
+
+    echo "downloading latest release in $CLERKIE_DIR"
+    ensure curl -L "$RELEASE_URL" -o $CLERKIE_DIR/release.zip
+    chmod +x $CLERKIE_DIR/release.zip
+    unzip -q -o $CLERKIE_DIR/release.zip
+    rm $CLERKIE_DIR/release.zip
+    echo "installed clerkie and unzipped"
+
+    FOLDER_NAME=$(ls -d */ | head -n 1)
+    if [ -d "$FOLDER_NAME" ]; then
+      echo "renaming $FOLDER_NAME"
+      mv "$FOLDER_NAME" "clerkie-src"
+    else
+      echo "Error: No folder found in the current working directory."
+    fi
+
+    echo "# clerkie-cli configs" >>$HOME/.zshrc
+    read_email
+    echo "export CLERKIE_SRC=$CLERKIE_DIR/clerkie-src" >>$HOME/.zshrc
+    echo '[[ -f "$HOME/.clerkie-cli/clerkie-src/setup.sh" ]] && builtin source "$HOME/.clerkie-cli/clerkie-src/setup.sh"' >>$HOME/.zshrc
+    echo "Clerkie Installed. Open a new Terminal Window to start using"
+    cd $START
+}
+
+ensure() {
+  if ! "$@"; then err "command failed: $*"; fi
+}
+
+main "$@" || exit 1
+-----------------------------------------
+
+content ---------------------------------
+
+chunk-repo-id: c079639f-5015-514a-b455-d47197e9777f
+chunk-repo-url: https://github.com/BerriAI/clerkie-cli
+chunk-symbol_ids: ['ec3699a1-c87c-5377-8940-c45f534837fc']
+chunk-type: merged
+chunk-origin: merged
+chunk-provider: tree-sitter
+chunk-part_total: None
+chunk-is_partial: False
+chunk-part_index: None
+chunk-token_count: 618
+chunk-scope_chain: []
+chunk-content_hash: 36df180c26de82850e27f79ff3754016fe0db916bdf1423572bdbbb7b0a4b8a6
+# File: message_hook.py
+# Language: python
+# Imports: from discord_webhook import DiscordWebhook, DiscordEmbed; from rich import print
+
+from discord_webhook import DiscordWebhook, DiscordEmbed
+from rich import print
+
+
+# clerkie_url = 
+
+
+# SERVER_ID = 
+
+def post_user_experience(error, clerkie_suggestion, user_name="Default User"):
+    webhook = DiscordWebhook(url=clerkie_url, username="cli-bot")
+    embed = DiscordEmbed(
+        title="Debug Error from CLI", description="", color='03b2f8'
+    )
+    embed.set_author(
+        name=user_name,
+        icon_url="https://avatars0.githubusercontent.com/u/14542790",
+    )
+    embed.set_timestamp()
+    # Set `inline=False` for the embed field to occupy the whole line
+    embed.add_embed_field(name="Stacktrace", value=error, inline=False)
+    embed.add_embed_field(name="Clerkie Response #1", value=clerkie_suggestion, inline=False)
+
+    webhook.add_embed(embed)
+    response = webhook.execute()
+    if response.status_code == 200:
+        data = response.json()
+        channel_id = data['channel_id']
+        m_id = data['id']
+        print("[bold green] You can continue your conversation on discord, I posted information about the error here:")
+        print(f'[bold green] https://discordapp.com/channels/{SERVER_ID}/{channel_id}/{m_id}')
+
+test_error = """
+Traceback (most recent call last):
+  File "message_hook.py", line 4, in <module>
+    response = webhook.execute()
+  File "/Users/daddyish/Library/Python/3.8/lib/python/site-packages/discord_webhook/webhook.py", line 435, in execute
+    response = self.api_post_request()
+
+"""
+response = """
+you can check that the URL is valid and includes the schema by using the Python requests library. 
+You can use the "requests.utils.urlparse" method to check the URL format, and add the schema if needed.
+"""
+# post_user_experience(test_error, response)
+-----------------------------------------
+
+content ---------------------------------
+
+chunk-repo-id: d704a078-7383-555b-82b7-d6f2b43bf56d
+chunk-repo-url: https://github.com/BerriAI/clerkie-cli
+chunk-symbol_ids: ['9f0d410b-00e4-5c26-9a23-0e15dd40f98c', 'd60b7b4a-ed98-519d-9431-ba1264acfddf']
+chunk-type: merged
+chunk-origin: merged
+chunk-provider: tree-sitter
+chunk-part_total: None
+chunk-is_partial: False
+chunk-part_index: None
+chunk-token_count: 170
+chunk-scope_chain: []
+chunk-content_hash: f8a6deeee1f8fb7c44e91446239a14f9937ee6992da0185c5430602db634df83
+# File: setup.sh
+# Language: bash
+
+LOG_FILE=$CLERKIE_SRC/c.log
+SCRIPT_PATH=$CLERKIE_SRC/call_clerkie.py
+
+setup_capture_hook() {
+    exec 2> >(tee $LOG_FILE)
+    echo "Clerkie Activated."
+}
+
+setup_clrk_trigger {
+
+}
+
+setup_capture_hook
+
+precmd() {
+    STATUS=$?
+    if [[ $STATUS -ne 0 && $STATUS -ne 130 ]]; then
+        python3 "$SCRIPT_PATH" debug_terminal
+    fi
+    if [[ "${1:0:4}" == "clrk" ]]; then
+      echo "Command starts with 'clrk'"
+    else
+      echo "Command does not start with 'clrk'"
+    fi
+}
+-----------------------------------------
+
+content ---------------------------------
+
+chunk-repo-id: 781a089e-dbdb-5c2a-8df1-72479d305bc2
 chunk-repo-url: None
-chunk-symbol_ids: ['13245a9a-c861-5314-af90-f56e20112abd']
+chunk-symbol_ids: ['5d3644d3-121f-5cf6-8600-1b9fc06dceb5']
 chunk-type: method
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -6938,9 +6938,9 @@ attachedRepository ? (
 
 content ---------------------------------
 
-chunk-repo-id: c6e52782-435c-54c2-b9fd-c7258a10eeae
+chunk-repo-id: 2fbdafb6-c9ce-566c-80b3-2252d9dfe5a7
 chunk-repo-url: None
-chunk-symbol_ids: ['13245a9a-c861-5314-af90-f56e20112abd']
+chunk-symbol_ids: ['5d3644d3-121f-5cf6-8600-1b9fc06dceb5']
 chunk-type: method
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -7026,9 +7026,9 @@ chunk-content_hash: b5e398989fcfb5988af7625de30a0279edf7af8820636426439a3644613a
 
 content ---------------------------------
 
-chunk-repo-id: 3c2b1da1-e611-5d18-8e7b-de53fd3b4c3b
+chunk-repo-id: d0d88af0-b6f0-5fcd-862f-c37c44bc8402
 chunk-repo-url: None
-chunk-symbol_ids: ['13245a9a-c861-5314-af90-f56e20112abd']
+chunk-symbol_ids: ['5d3644d3-121f-5cf6-8600-1b9fc06dceb5']
 chunk-type: method
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -7049,9 +7049,9 @@ chunk-content_hash: 41b805ea7ac014e23556e98bb374702a08344268f92489a02f0880849394
 
 content ---------------------------------
 
-chunk-repo-id: 8b40dfe9-7457-5d75-b496-be4173ec1b74
+chunk-repo-id: c85dd8b0-5704-53bc-a758-5693c4f42b9a
 chunk-repo-url: None
-chunk-symbol_ids: ['13245a9a-c861-5314-af90-f56e20112abd']
+chunk-symbol_ids: ['5d3644d3-121f-5cf6-8600-1b9fc06dceb5']
 chunk-type: method
 chunk-origin: query_symbol_split
 chunk-provider: tree-sitter
@@ -7072,7 +7072,7 @@ chunk-content_hash: d10b36aa74a59bcf4a88185837f658afaf3646eff2bb16c3928d0e9335e9
 
 content ---------------------------------
 
-chunk-repo-id: 2e1d5b19-4880-595f-870b-09d58b6fca43
+chunk-repo-id: 53e2c3a9-11c4-5063-aeca-0b174ccefaf6
 chunk-repo-url: None
 chunk-symbol_ids: []
 chunk-type: gap
@@ -7156,7 +7156,7 @@ const styles: Record<string, CSSProperties> =
 
 content ---------------------------------
 
-chunk-repo-id: dd5284c9-9b55-58b7-b7bf-62b2f34509a8
+chunk-repo-id: d4007931-5297-5d43-b806-f800a8300417
 chunk-repo-url: None
 chunk-symbol_ids: []
 chunk-type: merged
@@ -7273,7 +7273,7 @@ chunk-content_hash: 35a6f8f4928015ca1c9cb7286f41ea8c8cc9389123c067fcf28ee57d18a8
 
 content ---------------------------------
 
-chunk-repo-id: 651d3f9c-7d12-567e-afc5-36d1476a21b5
+chunk-repo-id: 5590f0e3-a7e9-5256-8b1e-7b340f05340d
 chunk-repo-url: None
 chunk-symbol_ids: []
 chunk-type: gap

@@ -104,7 +104,11 @@ class QueryExtractor:
         for symbol in symbols:
             if symbol.kind is SymbolKind.FUNCTION and symbol.parent_symbol_id:
                 parent = next(
-                    (item for item in symbols if item.symbol_id == symbol.parent_symbol_id),
+                    (
+                        item
+                        for item in symbols
+                        if item.symbol_id == symbol.parent_symbol_id
+                    ),
                     None,
                 )
                 if parent and parent.kind is SymbolKind.CLASS:
@@ -233,30 +237,59 @@ class QueryExtractor:
                     self._import(file_path, language, node, module, None, None, source)
                 )
         elif language == "go":
-            return [
+            results = [
                 self._import(file_path, language, node, path, None, None, source)
                 for path in re.findall(r'"([^"]+)"', statement)
             ]
+            for item in results[1:]:
+                item.raw_statement = None
+            return results
         elif language in {"c", "cpp"}:
             match = re.match(r'#include\s*[<"]([^>"]+)[>"]', statement)
             if match:
-                return [self._import(file_path, language, node, match.group(1), None, None, source)]
+                return [
+                    self._import(
+                        file_path, language, node, match.group(1), None, None, source
+                    )
+                ]
         elif language == "csharp":
             match = re.match(r"using\s+(?:static\s+)?([\w.]+)\s*;", statement)
             if match:
-                return [self._import(file_path, language, node, match.group(1), None, None, source)]
+                return [
+                    self._import(
+                        file_path, language, node, match.group(1), None, None, source
+                    )
+                ]
         elif language == "ruby":
             match = re.match(r"require(?:_relative)?\s+['\"]([^'\"]+)['\"]", statement)
             if match:
-                return [self._import(file_path, language, node, match.group(1), None, None, source)]
+                return [
+                    self._import(
+                        file_path, language, node, match.group(1), None, None, source
+                    )
+                ]
         elif language == "php":
             match = re.match(r"(?:use|require(?:_once)?)\s+([^;]+)", statement)
             if match:
-                return [self._import(file_path, language, node, match.group(1).strip(), None, None, source)]
+                return [
+                    self._import(
+                        file_path,
+                        language,
+                        node,
+                        match.group(1).strip(),
+                        None,
+                        None,
+                        source,
+                    )
+                ]
         elif language in {"rust", "kotlin", "swift"}:
             match = re.search(r"(?:use|import)\s+([\\\w./:@-]+)", statement)
             if match:
-                return [self._import(file_path, language, node, match.group(1), None, None, source)]
+                return [
+                    self._import(
+                        file_path, language, node, match.group(1), None, None, source
+                    )
+                ]
         else:
             match = re.search(r"(?:import|use)\s+([\\\w./:@-]+)", statement)
             if match:
