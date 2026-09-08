@@ -44,6 +44,10 @@ class CastChunker:
         # start on every call.
         self._newline_offsets: list[int] = []
 
+    _CONTAINER_KINDS: frozenset[str] = frozenset(
+        {"class", "struct", "enum", "interface"}
+    )
+
     def chunk(self, result: RawExtractionResult) -> list[CodeChunkDTO]:
         source = result.source_bytes
         self._symbol_by_id = {item.symbol_id: item for item in result.symbols}
@@ -82,9 +86,15 @@ class CastChunker:
                     )
                 )
             else:
+                # Container symbols (class, struct, enum, interface) have
+                # their children extracted as individual focused chunks.
+                # Splitting a container would produce redundant partial
+                # chunks that overlap with method/field-level chunks.
+                # Skip the container when it doesn't fit.
+                if item.symbol.kind.value in self._CONTAINER_KINDS:
+                    continue
                 chunks.extend(self._split_symbol(item, result))
-        return self._deduplicate(self._merge_adjacent(chunks, result))
-        # return self._deduplicate(chunks)
+        return self._deduplicate(chunks + self._merge_adjacent(chunks, result))
 
     def _gap_ranges(
         self, result: RawExtractionResult, symbols: list[SymbolDTO]
@@ -236,9 +246,23 @@ class CastChunker:
     def _merge_adjacent(
         self, chunks: list[CodeChunkDTO], result: RawExtractionResult
     ) -> list[CodeChunkDTO]:
-        chunks.sort(key=lambda item: (item.start_byte, item.end_byte))
+        """Build merged context chunks from adjacent symbol chunks.
+
+        Focused (single-symbol) chunks are preserved alongside merged
+        context chunks.  Only query-symbol chunks are merged; gap chunks
+        are not included in merged context.
+        """
+        # Only merge chunks that carry at least one symbol.
+        candidates = [
+            chunk
+            for chunk in chunks
+            if chunk.origin
+            in (ChunkOrigin.QUERY_SYMBOL, ChunkOrigin.QUERY_SYMBOL_SPLIT)
+            and not chunk.is_partial
+        ]
+        candidates.sort(key=lambda item: (item.start_byte, item.end_byte))
         merged: list[CodeChunkDTO] = []
-        for chunk in chunks:
+        for chunk in candidates:
             if (
                 merged
                 and merged[-1].end_byte <= chunk.start_byte
@@ -250,8 +274,6 @@ class CastChunker:
                     ChunkOrigin.MERGED,
                     merged[-1].symbol_ids + chunk.symbol_ids,
                 )
-                and not merged[-1].is_partial
-                and not chunk.is_partial
             ):
                 previous = merged.pop()
                 start, end = previous.start_byte, chunk.end_byte
@@ -381,10 +403,29 @@ class CastChunker:
         symbol: SymbolDTO | None,
         origin: ChunkOrigin,
     ) -> list[_Range]:
-        """Split a single leaf node by token count as a last resort."""
+        """Split a single leaf node by token count as a last resort.
+
+        Prefers splitting at newline boundaries so that identifiers,
+        strings, and comments stay intact.  Only falls back to byte-level
+        splitting when a single line exceeds the budget.
+        """
+        source = result.source_bytes
         ranges: list[_Range] = []
         cursor = start
         while cursor < end:
+            # Find the next newline within [cursor, end)
+            nl = source.find(b"\n", cursor, end)
+            if nl != -1 and nl + 1 < end:
+                candidate_end = nl + 1  # include the newline
+            else:
+                candidate_end = end
+            if self._fits(result, cursor, candidate_end, symbol, origin):
+                ranges.append(_Range(cursor, candidate_end))
+                cursor = candidate_end
+                continue
+            # Single line exceeds budget: split by byte with the same
+            # binary search, but avoid breaking UTF-8 continuation bytes
+            # and try to split at whitespace.
             low, high, best = cursor + 1, end, cursor
             while low <= high:
                 candidate = (low + high) // 2
@@ -394,12 +435,19 @@ class CastChunker:
                 else:
                     high = candidate - 1
             if best == cursor:
-                # A header can itself exceed the budget. Emit one byte rather
-                # than looping forever; the resulting chunk is still bounded
-                # as tightly as this input permits.
                 best = min(cursor + 1, end)
-            while best < end and (result.source_bytes[best] & 0xC0) == 0x80:
+            # Avoid UTF-8 continuation bytes.
+            while best < end and (source[best] & 0xC0) == 0x80:
                 best += 1
+            # Try to back up to a whitespace boundary so we don't split
+            # inside an identifier, string, or comment.
+            ws = best
+            while ws > cursor and source[ws : ws + 1] not in (
+                b" ", b"\t", b"\n", b"\r"
+            ):
+                ws -= 1
+            if ws > cursor:
+                best = ws
             ranges.append(_Range(cursor, best))
             cursor = best
         return ranges
@@ -513,9 +561,14 @@ class CastChunker:
     @staticmethod
     def _module_name(file_path: str) -> str:
         path = file_path.replace("\\", "/")
-        if "/" not in path:
-            return path.rsplit(".", 1)[0]
-        return path.rsplit("/", 1)[0].replace("/", ".")
+        parts = path.rsplit("/", 1)
+        if len(parts) == 1:
+            return parts[0].rsplit(".", 1)[0]
+        dir_part = parts[0].replace("/", ".")
+        file_stem = parts[1].rsplit(".", 1)[0] if "." in parts[1] else parts[1]
+        if dir_part:
+            return f"{dir_part}.{file_stem}"
+        return file_stem
 
     @staticmethod
     def _import_context(result: RawExtractionResult) -> str:

@@ -403,3 +403,100 @@ Day 6 should not implement yet:
 - LangGraph workflow.
 - Repository chat.
 - Patch generation.
+
+## Day 7 Completed: Semantic Parsing, Extraction, and AST-Aware Chunking
+
+Date: 2026-09-08
+
+Day 7 extended the parsing foundation into a persisted semantic indexing pipeline. The implementation remains focused on repository code understanding; embeddings, Qdrant writes, call graphs, and repository chat remain the next phase.
+
+Primary flow:
+
+```text
+Branch commit snapshot
+-> discover repository-relative files
+-> read exact file content from the commit
+-> detect language
+-> parse with Tree-sitter
+-> extract symbols and imports
+-> build AST-aware symbol/gap chunks
+-> persist symbols, imports, files, and chunks in PostgreSQL
+```
+
+Implemented under `backend/app/services/indexing/`:
+
+- `ParserService` with lazy parser and grammar caching.
+- Language detection for the supported source extensions.
+- Tree-sitter query extraction for symbols and imports across the configured languages.
+- Deterministic symbol and import identifiers using UUID5.
+- Symbol metadata including kind, qualified name, parent scope, byte/line ranges, signatures, documentation, and content hashes.
+- Python decorator-aware symbol boundaries.
+- Fallback AST symbol/import extraction for missing or errored query matches.
+- Invalid keyword-like query matches are rejected instead of becoming false anonymous symbols.
+- Symbol names exceeding the PostgreSQL `VARCHAR(255)` limit are rejected before persistence.
+- TSX support: `.tsx` files remain persisted as `typescript`, but are parsed with the `tsx` Tree-sitter grammar so JSX is represented correctly.
+- Separate query-cache entries for TypeScript and TSX grammar objects.
+- `CastChunker` with query-symbol chunks, AST gap chunks, merged context chunks, deterministic chunk IDs, source ranges, scope metadata, import context, and enriched content.
+- Token-budget-aware splitting with newline/whitespace preference and partial-chunk metadata.
+- Focused symbol chunks are retained alongside optional merged context chunks.
+- Per-file nested transaction/savepoint handling so one malformed file does not poison the shared indexing session with `PendingRollbackError`.
+- PostgreSQL persistence for repository symbols, imports, and chunks with branch-aware identifiers.
+
+Important TSX result:
+
+```text
+App.tsx is extracted as a function symbol.
+JSX and return expressions are contained in App symbol chunks.
+App.tsx has no cast_gap chunks in the verified output.
+```
+
+Current data model coverage:
+
+```text
+RepositoryFile
+-> RepositorySymbol
+-> RepositoryImport
+-> RepositoryChunk
+```
+
+Each persisted row remains associated with the repository, branch snapshot, and repository file. Chunk records retain source content and retrieval metadata while vector storage is intentionally deferred.
+
+Verification performed:
+
+```text
+python -m py_compile backend/app/services/indexing/parser/parser_service.py
+python -m py_compile backend/app/services/indexing/extraction/query_extractor.py
+python -m py_compile backend/app/services/indexing/pipeline.py
+python -m py_compile backend/app/test/test_indexing_extraction_and_chunking.py
+```
+
+Generated chunk output verification confirmed:
+
+```text
+App.tsx symbol extraction: verified
+App.tsx gap chunks: 0
+Maximum generated chunk token count: 800
+Chunks over configured token budget: 0
+False `return` symbol: not present
+```
+
+Runtime test limitation:
+
+```text
+The current shell environment does not have pytest installed, so the focused pytest suite has not been executed in this environment. Syntax validation and generated indexing output inspection were completed.
+```
+
+Day 7 acceptance status:
+
+```text
+Tree-sitter parsing: implemented
+Symbol/import extraction: implemented
+TSX JSX parsing: implemented
+AST-aware chunking: implemented
+Chunk metadata persistence: implemented
+Per-file rollback isolation: implemented
+Embeddings: next phase
+Qdrant indexing: next phase
+Call graphs: next phase
+Class-context chunks: next phase
+```

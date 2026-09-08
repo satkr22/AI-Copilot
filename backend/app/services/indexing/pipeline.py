@@ -39,8 +39,14 @@ class IndexingPipeline:
                 file.parse_status = ParseStatus.SKIPPED
                 file.parsed_at = datetime.now(timezone.utc)
                 return
+            source = content.decode("utf-8", errors="replace")
+            grammar_language = (
+                "tsx" if file.path.lower().endswith(".tsx") else language
+            )
             parsed = self.parser.parse_tree(
-                language, content.decode("utf-8", errors="replace")
+                language,
+                source,
+                grammar_language=grammar_language,
             )
             print("####### parsed tree ########")
             raw = self.extractor.extract(
@@ -56,8 +62,13 @@ class IndexingPipeline:
                 chunks=self.chunker.chunk(raw),
             )
             
-            self.persistence.save(self.db, repository.id, branch.id, file, result)
+            # Keep one malformed file from poisoning the shared indexing
+            # session. The savepoint rolls back this file's rows while the
+            # outer repository transaction remains usable.
+            with self.db.begin_nested():
+                self.persistence.save(self.db, repository.id, branch.id, file, result)
             file.parse_status = ParseStatus.COMPLETED
+            file.parse_error = None
             print("####### saved ########")
             
         except Exception as exc:

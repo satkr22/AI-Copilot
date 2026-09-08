@@ -32,12 +32,180 @@ class QueryExtractor:
     available yet; a single bad query must never discard an entire file.
     """
 
+    # Keyword-like names that must never appear as extracted symbol names.
+    # Each language may add its own; the superset catches false positives
+    # across grammars that reuse node types in unexpected contexts (e.g. a
+    # return_statement misclassified as a method_definition).
+    _KEYWORDS: frozenset[str] = frozenset(
+        {
+            # JavaScript / TypeScript
+            "return",
+            "if",
+            "else",
+            "for",
+            "while",
+            "do",
+            "switch",
+            "case",
+            "default",
+            "break",
+            "continue",
+            "throw",
+            "try",
+            "catch",
+            "finally",
+            "new",
+            "this",
+            "super",
+            "typeof",
+            "instanceof",
+            "void",
+            "delete",
+            "in",
+            "of",
+            "yield",
+            "await",
+            "async",
+            "const",
+            "let",
+            "var",
+            "function",
+            "class",
+            "import",
+            "export",
+            "from",
+            "as",
+            "static",
+            "get",
+            "set",
+            "extends",
+            "implements",
+            "interface",
+            "type",
+            "enum",
+            "namespace",
+            "module",
+            "declare",
+            "readonly",
+            "abstract",
+            "public",
+            "private",
+            "protected",
+            "any",
+            "boolean",
+            "number",
+            "string",
+            "never",
+            "unknown",
+            "null",
+            "undefined",
+            "true",
+            "false",
+            "require",
+            # Python
+            "and",
+            "or",
+            "not",
+            "is",
+            "lambda",
+            "pass",
+            "with",
+            "raise",
+            "except",
+            "elif",
+            "global",
+            "nonlocal",
+            "assert",
+            "del",
+            "None",
+            "True",
+            "False",
+            # Java / Kotlin / C# / general
+            "package",
+            "synchronized",
+            "volatile",
+            "transient",
+            "native",
+            "strictfp",
+            "goto",
+            "final",
+            "operator",
+            "explicit",
+            "virtual",
+            "override",
+            "sealed",
+            "internal",
+            "extern",
+            "unsigned",
+            "signed",
+            "extern",
+            "unsigned",
+            "sizeof",
+            "typedef",
+            "union",
+            "struct",
+            "where",
+            "select",
+            "when",
+            "object",
+            "val",
+            "fun",
+            "data",
+            "inner",
+            "out",
+            "ref",
+            "params",
+            "lock",
+            "fixed",
+            "stackalloc",
+            "checked",
+            "unchecked",
+            "event",
+            "delegate",
+            "add",
+            "remove",
+            "value",
+            "init",
+            "any",
+            "boolean",
+            "number",
+            "string",
+            "never",
+            "unknown",
+            "require",
+            "goto",
+            "final",
+            "operator",
+            "explicit",
+            "virtual",
+            "override",
+            "sealed",
+            "internal",
+        }
+    )
+
+    # Keywords that are only invalid in specific languages.  A name that
+    # appears here is rejected only when the file language matches.
+    _LANGUAGE_KEYWORDS: dict[str, frozenset[str]] = {
+        "c": frozenset({"register", "goto", "auto", "union"}),
+        "cpp": frozenset({"register", "goto", "auto", "union", "explicit", "virtual", "operator"}),
+        "java": frozenset({"synchronized", "volatile", "transient", "native", "strictfp", "goto"}),
+        "csharp": frozenset({"virtual", "override", "sealed", "internal", "extern", "where", "select", "object", "out", "ref", "params", "lock", "fixed", "stackalloc", "checked", "unchecked", "event", "delegate", "add", "remove", "value", "init"}),
+        "kotlin": frozenset({"val", "fun", "data", "inner", "object", "when", "sealed", "init"}),
+        "typescript": frozenset({"any", "boolean", "number", "string", "never", "unknown", "require"}),
+        "javascript": frozenset({"require"}),
+    }
+
     def __init__(self) -> None:
         # Reading the .scm file and compiling it into a tree-sitter Query is
         # the same work for every file of a given language. Doing it once per
         # file (the previous behaviour) dominated runtime on large repos;
         # caching by language turns O(files) compiles into O(languages).
-        self._query_cache: dict[str, Query | None] = {}
+        # A query is compiled against a specific Tree-sitter grammar. TS and
+        # TSX share the application language name used by persistence, but
+        # their Language objects are different and must not share Query
+        # instances.
+        self._query_cache: dict[tuple[str, int], Query] = {}
 
     def extract(
         self,
@@ -48,7 +216,7 @@ class QueryExtractor:
         language_obj: Language | None = None,
     ) -> RawExtractionResult:
         language = language.lower()
-        matches = self._query_matches(tree, language, language_obj)
+        matches = self._query_matches(tree, language, language_obj, source_bytes)
         symbols: list[SymbolDTO] = []
         imports: list[ImportDTO] = []
         symbol_nodes: dict[str, Node] = {}
@@ -60,12 +228,8 @@ class QueryExtractor:
                 )
                 continue
             node = self._definition_boundary(node)
-            name = (
-                self._text(name_node, source_bytes)
-                if name_node
-                else self._anonymous_name(node)
-            )
-            if not name:
+            name = self._valid_name(name_node, source_bytes, node, language)
+            if len(name) > 255:
                 continue
             symbol_kind = self._symbol_kind(kind)
             if language == "kotlin" and symbol_kind is SymbolKind.CLASS:
@@ -149,7 +313,8 @@ class QueryExtractor:
         )
 
     def _query_matches(
-        self, tree: Tree, language: str, language_obj: Language | None
+        self, tree: Tree, language: str, language_obj: Language | None,
+        source_bytes: bytes,
     ) -> list[tuple[Node, str, Node | None]]:
         query = self._compiled_query(language, language_obj)
         if query is None:
@@ -158,40 +323,75 @@ class QueryExtractor:
 
         try:
             matches: list[tuple[Node, str, Node | None]] = []
+            seen_spans: set[tuple[int, int]] = set()
             for _pattern, captures in QueryCursor(query).matches(tree.root_node):
-                outer = next(
-                    (
-                        self._first_node(nodes)
-                        for name, nodes in captures.items()
-                        if name.startswith("definition.")
-                    ),
-                    None,
-                )
-                if outer is None:
+                # Each pattern match has exactly one definition.* capture
+                # and exactly one @name capture.  Walk the capture dict
+                # once instead of calling next() repeatedly.
+                outer: Node | None = None
+                kind: str | None = None
+                name_node: Node | None = None
+                for capture_name, nodes in captures.items():
+                    if capture_name.startswith("definition."):
+                        outer = self._first_node(nodes)
+                        kind = capture_name.removeprefix("definition.")
+                    elif capture_name == "name":
+                        name_node = self._first_node(nodes)
+                if outer is None or kind is None:
                     continue
-                kind = next(
-                    name.removeprefix("definition.")
-                    for name in captures
-                    if name.startswith("definition.")
-                )
-                name_node = next(
-                    (
-                        self._first_node(nodes)
-                        for name, nodes in captures.items()
-                        if name == "name"
-                    ),
-                    None,
-                )
+                # A definition without a discoverable name is either a
+                # query coverage gap (pattern missing @name) or a false
+                # match (e.g. nested struct inside a typedef).  Skip it;
+                # the fallback walk handles genuinely anonymous constructs
+                # like `struct { int x; } var;`.
+                if name_node is None:
+                    continue
+                # Skip duplicates: the same source range can be matched by
+                # multiple query patterns (e.g. a method_definition inside a
+                # class also matches a function_declaration pattern).  The
+                # first match (outermost pattern) wins.
+                span = (outer.start_byte, outer.end_byte)
+                if span in seen_spans:
+                    continue
+                seen_spans.add(span)
+                # Validate that the name node is actually a descendant of the
+                # definition node.  When the name belongs to a different (e.g.
+                # nested) node, the pattern match is ambiguous and must be
+                # discarded.
+                if name_node is not None and not self._is_descendant_of(
+                    name_node, outer
+                ):
+                    continue
+                # Reject impossible names: keywords, empty strings, and names
+                # that look like operators or punctuation.  When a query
+                # pattern matched a definition node but the name is a keyword
+                # (e.g. ``return`` in a JSX context misclassified as a
+                # method), drop the entire match — an anonymous placeholder
+                # would still pollute embeddings and graph construction.
+                if name_node is not None:
+                    name_text = self._text(name_node, source_bytes)
+                    if self._is_invalid_name(name_text or "", language):
+                        continue
+                    if len(name_text) > 255:
+                        # repository_symbols.name is VARCHAR(255). A larger
+                        # value means the query captured more than an
+                        # identifier; reject the malformed match.
+                        continue
                 matches.append((outer, kind, name_node))
             return matches
         except Exception:
             return []
 
     def _compiled_query(self, language: str, language_obj: Language | None) -> Query | None:
-        if language in self._query_cache:
-            return self._query_cache[language]
+        cache_key = (language, id(language_obj) if language_obj is not None else 0)
+        if cache_key in self._query_cache:
+            return self._query_cache[cache_key]
         query = self._compile_query(language, language_obj)
-        self._query_cache[language] = query
+        # Only cache successful compilations.  Caching None would permanently
+        # disable a language even when a valid language_obj becomes available
+        # later (e.g. after lazy grammar loading completes).
+        if query is not None:
+            self._query_cache[cache_key] = query
         return query
 
     @staticmethod
@@ -227,6 +427,10 @@ class QueryExtractor:
                 )
                 if match:
                     module, names = match.groups()
+                    # Strip parenthesized grouping: `from foo import (a, b)`
+                    names = names.strip()
+                    if names.startswith("(") and names.endswith(")"):
+                        names = names[1:-1]
                     for item in names.split(","):
                         item = item.strip()
                         if not item:
@@ -243,15 +447,17 @@ class QueryExtractor:
                                 source,
                             )
                         )
-                    # Keep one copy of the statement text for the import
-                    # header. The DTOs still retain one row per imported
-                    # name for persistence, but only the first row represents
-                    # the source statement itself.
                     for item in results[1:]:
                         item.raw_statement = None
             elif statement.startswith("import "):
-                for item in statement[7:].split(","):
-                    parts = re.split(r"\s+as\s+", item.strip(), maxsplit=1)
+                names = statement[7:].strip()
+                if names.startswith("(") and names.endswith(")"):
+                    names = names[1:-1]
+                for item in names.split(","):
+                    item = item.strip()
+                    if not item:
+                        continue
+                    parts = re.split(r"\s+as\s+", item, maxsplit=1)
                     module = parts[0]
                     results.append(
                         self._import(
@@ -265,14 +471,57 @@ class QueryExtractor:
                         )
                     )
         elif language in {"javascript", "typescript"}:
+            # ES module imports: preserve named/default/namespace imports.
+            # import { foo, bar as baz } from './mod'
+            # import defaultExport, { named } from './mod'
+            # import * as ns from './mod'
+            # import './side-effect'
             match = re.search(
-                r"\bfrom\s+['\"]([^'\"]+)['\"]|import\s+['\"]([^'\"]+)['\"]", statement
+                r"\bfrom\s+['\"]([^'\"]+)['\"]|import\s+['\"]([^'\"]+)['\"]",
+                statement,
             )
+            module = match.group(1) or match.group(2) if match else None
+            # Extract the import clause (everything between "import" and
+            # "from" or end-of-statement).
+            clause = statement
             if match:
-                module = match.group(1) or match.group(2)
+                clause = statement[: match.start()]
+            clause = re.sub(r"^import\s+", "", clause).strip()
+            if not clause and module:
+                # Side-effect import: import './side-effect'
                 results.append(
-                    self._import(file_path, language, node, module, None, None, source)
+                    self._import(
+                        file_path, language, node, module, None, None, source
+                    )
                 )
+            elif clause:
+                # Handle `import * as ns from '...'` and `import type { ... }`
+                # and `import defaultExport, { named } from '...'`
+                for part in self._split_import_clause(clause):
+                    if not part:
+                        continue
+                    parts = re.split(r"\s+as\s+", part, maxsplit=1)
+                    imported_name = parts[0].strip()
+                    alias = parts[1].strip() if len(parts) == 2 else None
+                    results.append(
+                        self._import(
+                            file_path,
+                            language,
+                            node,
+                            module or "",
+                            imported_name,
+                            alias,
+                            source,
+                        )
+                    )
+            if not results:
+                results.append(
+                    self._import(
+                        file_path, language, node, module or "", None, None, source
+                    )
+                )
+            for item in results[1:]:
+                item.raw_statement = None
         elif language == "go":
             results = [
                 self._import(file_path, language, node, path, None, None, source)
@@ -443,11 +692,14 @@ class QueryExtractor:
                 inner = self._definition_node(boundary)
                 name_node = inner.child_by_field_name("name") if inner else None
             node = boundary
-            name = (
-                self._text(name_node, source)
-                if name_node
-                else self._anonymous_name(node)
-            )
+            name = self._valid_name(name_node, source, node, language)
+            if len(name) > 255:
+                continue
+            if name.startswith("<anonymous:") and name_node is not None:
+                # The name node exists but the name was rejected as a
+                # keyword.  Skip this symbol entirely — an anonymous
+                # placeholder from a keyword would be a false positive.
+                continue
             if language == "kotlin" and kind is SymbolKind.CLASS:
                 if self._text(node, source).lstrip().startswith("enum class"):
                     kind = SymbolKind.ENUM
@@ -606,6 +858,70 @@ class QueryExtractor:
         )
 
     @staticmethod
+    def _is_descendant_of(node: Node, ancestor: Node) -> bool:
+        """True when *node* is strictly inside *ancestor*'s byte range."""
+        return (
+            node.start_byte >= ancestor.start_byte
+            and node.end_byte <= ancestor.end_byte
+        )
+
+    @classmethod
+    def _is_invalid_name(cls, name: str, language: str | None = None) -> bool:
+        """Reject names that are keywords, empty, or look like operators."""
+        if not name or not name.strip():
+            return True
+        if name in cls._KEYWORDS:
+            return True
+        if language is not None:
+            lang_keywords = cls._LANGUAGE_KEYWORDS.get(language.lower())
+            if lang_keywords is not None and name in lang_keywords:
+                return True
+        # Reject names that are purely operators or punctuation.
+        if all(
+            ch in "(){}[]<>+-*/%=!&|^~?:;,.#@\\\"'` \t\n\r"
+            for ch in name
+        ):
+            return True
+        return False
+
+    @staticmethod
+    def _split_import_clause(clause: str) -> list[str]:
+        """Split a JS/TS import clause into individual imported names.
+
+        ``import { foo, bar as baz }`` → ``['foo', 'bar']``
+        ``import defaultExport, { named }`` → ``['defaultExport', 'named']``
+        ``import * as ns`` → ``['*']``
+        ``import type { Foo }`` → ``['Foo']``
+        """
+        clause = re.sub(r"\btype\s+", "", clause).strip()
+        # Namespace import: import * as ns
+        if clause.startswith("*"):
+            return ["*"]
+        parts: list[str] = []
+        # Strip leading { and trailing }
+        clause = clause.strip()
+        if clause.startswith("{"):
+            clause = clause[1:]
+        if clause.endswith("}"):
+            clause = clause[:-1]
+        # Split by comma, but be careful with nested generics
+        depth = 0
+        current: list[str] = []
+        for ch in clause:
+            if ch in "<({":
+                depth += 1
+            elif ch in ">)}":
+                depth -= 1
+            elif ch == "," and depth == 0:
+                parts.append("".join(current).strip())
+                current = []
+                continue
+            current.append(ch)
+        if current:
+            parts.append("".join(current).strip())
+        return [p for p in parts if p]
+
+    @staticmethod
     def _first_node(value) -> Node | None:
         if isinstance(value, (list, tuple)):
             return value[0] if value else None
@@ -618,6 +934,21 @@ class QueryExtractor:
     def _anonymous_name(self, node: Node) -> str:
         return f"<anonymous:{node.start_point[0] + 1}>"
 
+    def _valid_name(
+        self, name_node: Node | None, source: bytes, node: Node,
+        language: str | None = None,
+    ) -> str:
+        """Return the symbol name or an anonymous placeholder.
+
+        Rejects keywords and empty names so that return/if/const/etc. never
+        appear as extracted symbol names.
+        """
+        if name_node is not None:
+            text = self._text(name_node, source)
+            if text and not self._is_invalid_name(text, language):
+                return text
+        return self._anonymous_name(node)
+
     def _signature(self, node: Node, source: bytes) -> str:
         signature_node = self._definition_node(node) or node
         text = self._text(signature_node, source).splitlines()[0].strip()
@@ -628,9 +959,47 @@ class QueryExtractor:
         for child in node.children:
             if child.type in {"block", "class_body"}:
                 for nested in child.children:
-                    if nested.type in {"expression_statement", "string", "comment"}:
+                    if nested.type in {"expression_statement"}:
+                        # Expression statement as docstring: only accept
+                        # string literals (triple-quoted or single-quoted),
+                        # not arbitrary expressions or comments.
+                        inner = (
+                            nested.children[0] if nested.children else None
+                        )
+                        if inner is not None and inner.type == "string":
+                            value = self._text(inner, source).strip()
+                            if value:
+                                return value
+                        # Only check the first child; subsequent
+                        # statements are body, not documentation.
+                        break
+                    if nested.type == "string":
                         value = self._text(nested, source).strip()
                         if value:
                             return value
-                    # break
+                        break
+                    if nested.type == "comment":
+                        # Only accept doc-comment styles (///, //!, /**,
+                        # ##, --[[, etc.), not ordinary // or # comments.
+                        value = self._text(nested, source).strip()
+                        if self._is_doc_comment(value):
+                            return value
+                        break
         return None
+
+    @staticmethod
+    def _is_doc_comment(text: str) -> bool:
+        """True when a comment looks like documentation, not code narration."""
+        if not text:
+            return False
+        return (
+            text.startswith("/**")
+            or text.startswith("///")
+            or text.startswith("//!")
+            or text.startswith("##")
+            or text.startswith("--[[")
+            or text.startswith("--[=[")
+            or text.startswith('"""')
+            or text.startswith("'''")
+            or text.startswith("(*")
+        )

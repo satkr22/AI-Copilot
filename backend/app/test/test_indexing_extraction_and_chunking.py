@@ -64,3 +64,28 @@ def test_merged_chunks_keep_entity_context():
     assert "# Entities:" in merged.enriched_content
     assert "first" in merged.enriched_content
     assert "second" in merged.enriched_content
+
+
+def test_tsx_uses_tsx_grammar_for_jsx_components():
+    source = (
+        'import React from "react";\n'
+        "export default function App() {\n"
+        "  return (<main><h1>Hello</h1></main>);\n"
+        "}\n"
+    )
+    parsed = ParserService().parse_tree(
+        "typescript",
+        source,
+        grammar_language="tsx",
+    )
+    raw = QueryExtractor().extract(
+        parsed.tree,
+        parsed.source_bytes,
+        "frontend/src/App.tsx",
+        "typescript",
+        parsed.language,
+    )
+
+    app = next(item for item in raw.symbols if item.name == "App")
+    assert app.kind.value == "function"
+    assert "<main>" in raw.source_bytes[app.start_byte : app.end_byte].decode()

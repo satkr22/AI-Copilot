@@ -1,4 +1,7 @@
+; Definitions and imports for C++ extraction.
 (function_definition declarator: (function_declarator declarator: (identifier) @name)) @definition.function
+; Pointer-returning functions.
+(function_definition declarator: (pointer_declarator declarator: (function_declarator declarator: (identifier) @name))) @definition.function
 (class_specifier name: (type_identifier) @name) @definition.class
 (struct_specifier name: (type_identifier) @name) @definition.struct
 (enum_specifier name: (type_identifier) @name) @definition.enum

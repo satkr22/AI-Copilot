@@ -56,6 +56,7 @@ class ParserService:
         self,
         language: str,
         source: str,
+        grammar_language: str | None = None,
     ) -> ParseTree:
         """
         Parse source code into a Tree-sitter CST.
@@ -68,6 +69,12 @@ class ParserService:
             source:
                 Source code to parse.
 
+            grammar_language:
+                Optional Tree-sitter grammar override. This is used for TSX:
+                the application language remains ``typescript`` for query
+                extraction and persistence, while the source is parsed with
+                the ``tsx`` grammar so JSX is represented correctly.
+
         Returns:
             ParseTree containing:
                 - the Tree-sitter CST
@@ -79,13 +86,15 @@ class ParserService:
         """
 
         source_bytes = source.encode("utf-8")
+        language = language.strip().lower()
+        parser_language = (grammar_language or language).strip().lower()
 
-        parser = self._get_parser(language)
+        parser = self._get_parser(parser_language)
 
         tree = parser.parse(source_bytes)
 
         return ParseTree(
             tree=tree,
             source_bytes=source_bytes,
-            language=self._languages[language.strip().lower()],
+            language=self._languages[parser_language],
         )
