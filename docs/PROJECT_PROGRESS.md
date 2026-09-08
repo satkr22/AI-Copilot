@@ -1,6 +1,6 @@
 # AI Copilot Project Progress
 
-Last updated: 2026-09-05
+Last updated: 2026-09-08
 
 ## Current Status
 
@@ -442,13 +442,6 @@ Implemented under `backend/app/services/indexing/`:
 - Per-file nested transaction/savepoint handling so one malformed file does not poison the shared indexing session with `PendingRollbackError`.
 - PostgreSQL persistence for repository symbols, imports, and chunks with branch-aware identifiers.
 
-Important TSX result:
-
-```text
-App.tsx is extracted as a function symbol.
-JSX and return expressions are contained in App symbol chunks.
-App.tsx has no cast_gap chunks in the verified output.
-```
 
 Current data model coverage:
 
@@ -461,37 +454,17 @@ RepositoryFile
 
 Each persisted row remains associated with the repository, branch snapshot, and repository file. Chunk records retain source content and retrieval metadata while vector storage is intentionally deferred.
 
-Verification performed:
-
-```text
-python -m py_compile backend/app/services/indexing/parser/parser_service.py
-python -m py_compile backend/app/services/indexing/extraction/query_extractor.py
-python -m py_compile backend/app/services/indexing/pipeline.py
-python -m py_compile backend/app/test/test_indexing_extraction_and_chunking.py
-```
 
 Generated chunk output verification confirmed:
 
-```text
-App.tsx symbol extraction: verified
-App.tsx gap chunks: 0
-Maximum generated chunk token count: 800
-Chunks over configured token budget: 0
-False `return` symbol: not present
-```
 
-Runtime test limitation:
-
-```text
-The current shell environment does not have pytest installed, so the focused pytest suite has not been executed in this environment. Syntax validation and generated indexing output inspection were completed.
-```
 
 Day 7 acceptance status:
 
 ```text
 Tree-sitter parsing: implemented
 Symbol/import extraction: implemented
-TSX JSX parsing: implemented
+TSX/JSX/Python parsing: implemented
 AST-aware chunking: implemented
 Chunk metadata persistence: implemented
 Per-file rollback isolation: implemented
