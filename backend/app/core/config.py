@@ -24,6 +24,11 @@ class Settings(BaseSettings):
     # frontend
     VITE_FRONTEND_API_URL: str
     
+    # user and group identifier
+    UID : int = 1000
+    GID: int = 1000
+
+    
     # debug settings
     @property
     def DEBUG(self) -> bool:
