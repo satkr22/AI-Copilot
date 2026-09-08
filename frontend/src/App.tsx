@@ -250,7 +250,7 @@ export default function App() {
         method: "POST",
         body: JSON.stringify({
           source_url: githubUrl,
-          branch,
+          branch: branch || null,
         }),
       }
     );

@@ -42,9 +42,11 @@ class IndexingPipeline:
             parsed = self.parser.parse_tree(
                 language, content.decode("utf-8", errors="replace")
             )
+            print("####### parsed tree ########")
             raw = self.extractor.extract(
                 parsed.tree, parsed.source_bytes, file.path, language, parsed.language
             )
+            print("####### extracted ########")
             result = ParseResultDTO(
                 file_path=file.path,
                 language=language,
@@ -53,8 +55,11 @@ class IndexingPipeline:
                 imports=raw.imports,
                 chunks=self.chunker.chunk(raw),
             )
+            
             self.persistence.save(self.db, repository.id, branch.id, file, result)
             file.parse_status = ParseStatus.COMPLETED
+            print("####### saved ########")
+            
         except Exception as exc:
             file.parse_status = ParseStatus.FAILED
             file.parse_error = str(exc)[:500]

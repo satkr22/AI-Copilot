@@ -184,7 +184,8 @@ class RepositoryService:
         
         # now clone the github repo into local repo  folder
         try:
-            branches = self.storage.clone_github_snapshot(storage_path, str(data.source_url))
+            print("here1")
+            branches = self.storage.clone_github_snapshot(storage_path, str(data.source_url), data.branch)
         
             return self._create_finalized_repository(
                 user_id=user_id,

@@ -185,19 +185,41 @@ class RepositoryStorageService:
         self,
         repo_dir: Path,
         github_url: str,
+        branch_name: str | None
     ) -> dict[str, str]:
         try:
-            subprocess.run(
-                [
-                    "git",
-                    "clone",
-                    github_url,
-                    str(repo_dir),
-                ],
-                check=True,
-                capture_output=True,
-                text=True,
-            )
+            if branch_name is None:
+                print("without branch, branch:", branch_name)
+                
+                subprocess.run(
+                    [
+                        "git",
+                        "clone",
+                        github_url,
+                        str(repo_dir),
+                    ],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                print("without branch, branch:", branch_name)
+                
+            else:
+                print("branch:", branch_name)
+                subprocess.run(
+                    [
+                        "git",
+                        "clone",
+                        "--branch", branch_name,
+                        "--single-branch",
+                        github_url,
+                        str(repo_dir),
+                    ],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                
             print("#######################cloining okay 1..................")
             
             # Validate that Git created a valid repository.  

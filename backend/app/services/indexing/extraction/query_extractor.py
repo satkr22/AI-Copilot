@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from uuid import NAMESPACE_URL, uuid5
 
-from tree_sitter import Language, Node, Tree
+from tree_sitter import Language, Node, Query, Tree
 
 from app.services.indexing.dto_models.models import ImportDTO, SymbolDTO, SymbolKind
 
@@ -32,6 +32,13 @@ class QueryExtractor:
     available yet; a single bad query must never discard an entire file.
     """
 
+    def __init__(self) -> None:
+        # Reading the .scm file and compiling it into a tree-sitter Query is
+        # the same work for every file of a given language. Doing it once per
+        # file (the previous behaviour) dominated runtime on large repos;
+        # caching by language turns O(files) compiles into O(languages).
+        self._query_cache: dict[str, Query | None] = {}
+
     def extract(
         self,
         tree: Tree,
@@ -52,6 +59,7 @@ class QueryExtractor:
                     self._imports_from_node(node, source_bytes, language, file_path)
                 )
                 continue
+            node = self._definition_boundary(node)
             name = (
                 self._text(name_node, source_bytes)
                 if name_node
@@ -92,10 +100,24 @@ class QueryExtractor:
                 symbols.append(symbol)
                 symbol_nodes[symbol_id] = node
 
-        if not symbols:
-            symbols, symbol_nodes = self._fallback_symbols(
+        # Fallback extraction is an error-recovery path. Running a full AST
+        # walk after every successful query doubled indexing work for healthy
+        # files, so only use it when the query returned nothing or parsing
+        # reported errors.
+        if not symbols or getattr(tree.root_node, "has_error", False):
+            fallback_symbols, fallback_nodes = self._fallback_symbols(
                 tree.root_node, source_bytes, file_path, language
             )
+            known_spans = {
+                (item.start_byte, item.end_byte, item.name) for item in symbols
+            }
+            for fallback in fallback_symbols:
+                key = (fallback.start_byte, fallback.end_byte, fallback.name)
+                if key in known_spans:
+                    continue
+                symbols.append(fallback)
+                symbol_nodes[fallback.symbol_id] = fallback_nodes[fallback.symbol_id]
+                known_spans.add(key)
 
         self._assign_scope(symbols)
         # Python's grammar uses the same function_definition node for
@@ -129,25 +151,12 @@ class QueryExtractor:
     def _query_matches(
         self, tree: Tree, language: str, language_obj: Language | None
     ) -> list[tuple[Node, str, Node | None]]:
-        query_path = QUERY_DIR / f"{language}.scm"
-        if not query_path.exists():
+        query = self._compiled_query(language, language_obj)
+        if query is None:
             return []
-        try:
-            from tree_sitter import Query, QueryCursor
+        from tree_sitter import QueryCursor
 
-            query_text = query_path.read_text(encoding="utf-8")
-            try:
-                query = (
-                    language_obj.query(query_text) if language_obj is not None else None
-                )
-                if query is None:
-                    return []
-            except AttributeError:
-                # tree-sitter 0.25 exposes Query through the Language object,
-                # while older compatible releases accept the same constructor.
-                if language_obj is None:
-                    return []
-                query = Query(language_obj, query_text)  # type: ignore[arg-type]
+        try:
             matches: list[tuple[Node, str, Node | None]] = []
             for _pattern, captures in QueryCursor(query).matches(tree.root_node):
                 outer = next(
@@ -177,6 +186,34 @@ class QueryExtractor:
             return matches
         except Exception:
             return []
+
+    def _compiled_query(self, language: str, language_obj: Language | None) -> Query | None:
+        if language in self._query_cache:
+            return self._query_cache[language]
+        query = self._compile_query(language, language_obj)
+        self._query_cache[language] = query
+        return query
+
+    @staticmethod
+    def _compile_query(language: str, language_obj: Language | None) -> Query | None:
+        query_path = QUERY_DIR / f"{language}.scm"
+        if not query_path.exists():
+            return None
+        try:
+            query_text = query_path.read_text(encoding="utf-8")
+            try:
+                query = (
+                    language_obj.query(query_text) if language_obj is not None else None
+                )
+            except AttributeError:
+                # tree-sitter 0.25 exposes Query through the Language object,
+                # while older compatible releases accept the same constructor.
+                if language_obj is None:
+                    return None
+                query = Query(language_obj, query_text)  # type: ignore[arg-type]
+            return query
+        except Exception:
+            return None
 
     def _imports_from_node(
         self, node: Node, source: bytes, language: str, file_path: str
@@ -309,11 +346,13 @@ class QueryExtractor:
             },
             "javascript": {
                 "function_declaration": SymbolKind.FUNCTION,
+                "generator_function_declaration": SymbolKind.FUNCTION,
                 "class_declaration": SymbolKind.CLASS,
                 "method_definition": SymbolKind.METHOD,
             },
             "typescript": {
                 "function_declaration": SymbolKind.FUNCTION,
+                "generator_function_declaration": SymbolKind.FUNCTION,
                 "class_declaration": SymbolKind.CLASS,
                 "method_definition": SymbolKind.METHOD,
                 "interface_declaration": SymbolKind.INTERFACE,
@@ -323,6 +362,8 @@ class QueryExtractor:
                 "class_declaration": SymbolKind.CLASS,
                 "interface_declaration": SymbolKind.INTERFACE,
                 "enum_declaration": SymbolKind.ENUM,
+                "record_declaration": SymbolKind.CLASS,
+                "annotation_type_declaration": SymbolKind.INTERFACE,
             },
             "go": {
                 "function_declaration": SymbolKind.FUNCTION,
@@ -372,6 +413,7 @@ class QueryExtractor:
                 "method": SymbolKind.METHOD,
                 "singleton_method": SymbolKind.METHOD,
                 "class": SymbolKind.CLASS,
+                "module": SymbolKind.CLASS,
             },
             "swift": {
                 "function_declaration": SymbolKind.FUNCTION,
@@ -381,6 +423,13 @@ class QueryExtractor:
                 "enum_declaration": SymbolKind.ENUM,
                 "typealias_declaration": SymbolKind.TYPE_ALIAS,
             },
+            "bash": {
+                "function_definition": SymbolKind.FUNCTION,
+            },
+            "sql": {
+                "create_table": SymbolKind.CLASS,
+                "create_function": SymbolKind.FUNCTION,
+            },
         }.get(language, {})
         symbols: list[SymbolDTO] = []
         nodes: dict[str, Node] = {}
@@ -389,6 +438,11 @@ class QueryExtractor:
             if kind is None:
                 continue
             name_node = node.child_by_field_name("name")
+            boundary = self._definition_boundary(node)
+            if name_node is None and boundary is not node:
+                inner = self._definition_node(boundary)
+                name_node = inner.child_by_field_name("name") if inner else None
+            node = boundary
             name = (
                 self._text(name_node, source)
                 if name_node
@@ -423,6 +477,30 @@ class QueryExtractor:
             nodes[symbol_id] = node
         return symbols, nodes
 
+    @staticmethod
+    def _definition_boundary(node: Node) -> Node:
+        """Return the full source range for decorated definitions.
+
+        Python represents decorators in an enclosing ``decorated_definition``
+        node while the function/class name lives in the nested definition.
+        Using the wrapper as the symbol boundary keeps ``@router.get(...)``
+        attached to the route implementation and also works for decorated
+        classes and methods.
+        """
+        parent = node.parent
+        while parent is not None and parent.type == "decorated_definition":
+            return parent
+        return node
+
+    @staticmethod
+    def _definition_node(node: Node) -> Node | None:
+        if node.type != "decorated_definition":
+            return node
+        for child in node.children:
+            if child.type in {"function_definition", "class_definition"}:
+                return child
+        return None
+
     def _fallback_imports(
         self,
         root: Node,
@@ -450,23 +528,25 @@ class QueryExtractor:
         return results
 
     def _assign_scope(self, symbols: list[SymbolDTO]) -> None:
+        # Was O(n^2): every symbol rescanned the full symbol list to find its
+        # smallest enclosing range. Symbol ranges from an AST nest properly
+        # (no partial overlaps), so a single pass with a stack of currently
+        # "open" ranges finds the nearest enclosing symbol in O(n) — the
+        # stack top, after popping ranges that have already closed, is
+        # always that nearest ancestor.
         symbols.sort(
             key=lambda item: (item.start_byte, -(item.end_byte - item.start_byte))
         )
+        stack: list[SymbolDTO] = []
         for symbol in symbols:
-            parents = [
-                candidate
-                for candidate in symbols
-                if candidate.symbol_id != symbol.symbol_id
-                and candidate.start_byte <= symbol.start_byte
-                and candidate.end_byte >= symbol.end_byte
-            ]
-            if not parents:
-                continue
-            parent = min(parents, key=lambda item: item.end_byte - item.start_byte)
-            symbol.parent_symbol_id = parent.symbol_id
-            symbol.parent_name = parent.name
-            symbol.qualified_name = f"{parent.qualified_name}.{symbol.name}"
+            while stack and stack[-1].end_byte <= symbol.start_byte:
+                stack.pop()
+            if stack:
+                parent = stack[-1]
+                symbol.parent_symbol_id = parent.symbol_id
+                symbol.parent_name = parent.name
+                symbol.qualified_name = f"{parent.qualified_name}.{symbol.name}"
+            stack.append(symbol)
 
     def _import(
         self,
@@ -505,9 +585,15 @@ class QueryExtractor:
 
     @staticmethod
     def _walk(node: Node):
-        yield node
-        for child in node.children:
-            yield from QueryExtractor._walk(child)
+        # Recursive `yield from` delegation re-enters every generator frame
+        # on the call stack for each node yielded, which is O(depth) per
+        # node (O(N * depth) overall) — costly on deeply nested ASTs. An
+        # explicit stack keeps traversal O(N).
+        stack = [node]
+        while stack:
+            current = stack.pop()
+            yield current
+            stack.extend(reversed(current.children))
 
     @staticmethod
     def _text(node: Node | None, source: bytes) -> str:
@@ -533,10 +619,12 @@ class QueryExtractor:
         return f"<anonymous:{node.start_point[0] + 1}>"
 
     def _signature(self, node: Node, source: bytes) -> str:
-        text = self._text(node, source).splitlines()[0].strip()
+        signature_node = self._definition_node(node) or node
+        text = self._text(signature_node, source).splitlines()[0].strip()
         return text[:500]
 
     def _docstring(self, node: Node, source: bytes) -> str | None:
+        node = self._definition_node(node) or node
         for child in node.children:
             if child.type in {"block", "class_body"}:
                 for nested in child.children:

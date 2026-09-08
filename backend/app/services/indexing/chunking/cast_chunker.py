@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import bisect
 import hashlib
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from uuid import NAMESPACE_URL, uuid5
 
 from tree_sitter import Node
@@ -34,9 +35,22 @@ class CastChunker:
             raise ValueError("max_chunk_tokens must be positive")
         self.max_chunk_tokens = max_chunk_tokens
         self.tokenizer = tokenizer or CodeTokenCounter()
+        self._symbol_by_id: dict[str, SymbolDTO] = {}
+        self._scope_cache: dict[str, list[str]] = {}
+        self._enriched_cache: dict[tuple, tuple[str, int]] = {}
+        self._import_context_cache = ""
+        # Byte offsets of every newline in the current file, used by _line
+        # for O(log n) lookups instead of rescanning source_bytes from the
+        # start on every call.
+        self._newline_offsets: list[int] = []
 
     def chunk(self, result: RawExtractionResult) -> list[CodeChunkDTO]:
         source = result.source_bytes
+        self._symbol_by_id = {item.symbol_id: item for item in result.symbols}
+        self._scope_cache = {}
+        self._enriched_cache = {}
+        self._import_context_cache = self._import_context(result)
+        self._newline_offsets = self._compute_newline_offsets(source)
         symbols = sorted(
             result.symbols,
             key=lambda item: (item.start_byte, -(item.end_byte - item.start_byte)),
@@ -77,16 +91,19 @@ class CastChunker:
     ) -> list[_Range]:
         source_length = len(result.source_bytes)
         # Nested methods are claimed by their containing class for gap finding.
-        outer = [
-            symbol
-            for symbol in symbols
-            if not any(
-                other.start_byte <= symbol.start_byte
-                and other.end_byte >= symbol.end_byte
-                and other.symbol_id != symbol.symbol_id
-                for other in symbols
-            )
-        ]
+        # `symbols` is already sorted by (start_byte, -length), so ranges
+        # nest properly (no partial overlaps) and a single pass with a stack
+        # of still-open ranges finds the outer (unenclosed) symbols in O(n)
+        # instead of the previous O(n^2) "is this contained by any other
+        # symbol" scan.
+        outer: list[SymbolDTO] = []
+        stack: list[SymbolDTO] = []
+        for symbol in symbols:
+            while stack and stack[-1].end_byte <= symbol.start_byte:
+                stack.pop()
+            if not stack:
+                outer.append(symbol)
+            stack.append(symbol)
         claimed = sorted((symbol.start_byte, symbol.end_byte) for symbol in outer)
         gaps: list[_Range] = []
         cursor = 0
@@ -231,6 +248,7 @@ class CastChunker:
                     chunk.end_byte,
                     None,
                     ChunkOrigin.MERGED,
+                    merged[-1].symbol_ids + chunk.symbol_ids,
                 )
                 and not merged[-1].is_partial
                 and not chunk.is_partial
@@ -285,8 +303,10 @@ class CastChunker:
             if origin is ChunkOrigin.MERGED
             else (ChunkType.GAP if symbol is None else self._chunk_type(symbol))
         )
-        header = self._header(result, scopes, symbol)
-        enriched = f"{header}\n\n{content}" if header else content
+        context_symbols = self._context_symbols(result, ids, symbol)
+        enriched, enriched_tokens = self._select_enriched(
+            result, start, end, scopes, symbol, context_symbols
+        )
         content_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
         # A source range is not sufficient identity: two symbols can produce
         # the same bytes, and split/merged chunks can share a range. Include
@@ -330,7 +350,7 @@ class CastChunker:
             part_index,
             part_total,
             content_hash,
-            token_count=max(1, self.tokenizer.count(enriched)),
+            token_count=max(1, enriched_tokens),
         )
 
     def _fits(
@@ -340,12 +360,18 @@ class CastChunker:
         end: int,
         symbol: SymbolDTO | None,
         origin: ChunkOrigin,
+        symbol_ids: list[str] | None = None,
     ) -> bool:
-        content = result.source_bytes[start:end].decode("utf-8", errors="replace")
         scopes = self._scope_chain(symbol, result)
-        header = self._header(result, scopes, symbol)
-        enriched = f"{header}\n\n{content}" if header else content
-        return self.tokenizer.count(enriched) <= self.max_chunk_tokens
+        _, enriched_tokens = self._select_enriched(
+            result,
+            start,
+            end,
+            scopes,
+            symbol,
+            self._context_symbols(result, symbol_ids or [], symbol),
+        )
+        return enriched_tokens <= self.max_chunk_tokens
 
     def _hard_split_ranges(
         self,
@@ -392,23 +418,123 @@ class CastChunker:
         return list(unique.values())
 
     def _header(
-        self, result: RawExtractionResult, scopes: list[str], symbol: SymbolDTO | None
+        self,
+        result: RawExtractionResult,
+        scopes: list[str],
+        symbol: SymbolDTO | None,
+        context_symbols: list[SymbolDTO] | None = None,
+        include_imports: bool = True,
     ) -> str:
         lines = [f"# File: {result.file_path}", f"# Language: {result.language}"]
+        module = self._module_name(result.file_path)
+        if module:
+            lines.append(f"# Module: {module}")
         if scopes:
             lines.append(f"# Scope: {'.'.join(scopes)}")
-        if symbol and symbol.signature:
-            lines.append(f"# Signature: {symbol.signature}")
-        imports = list(
-            dict.fromkeys(
-                item.raw_statement.strip()
-                for item in result.imports
-                if item.raw_statement
-            )
-        )
-        if imports:
-            lines.append(f"# Imports: {'; '.join(imports[:12])}")
+        if symbol:
+            lines.append(f"# Entity: {symbol.qualified_name}")
+            lines.append(f"# Entity Type: {symbol.kind.value}")
+            if symbol.signature:
+                lines.append(f"# Signature: {self._compact(symbol.signature, 500)}")
+            if symbol.docstring:
+                lines.append(f"# Documentation: {self._compact(symbol.docstring, 600)}")
+        elif context_symbols:
+            entity_lines = [
+                f"# - {item.qualified_name} [{item.kind.value}]"
+                for item in context_symbols
+            ]
+            lines.append("# Entities:")
+            lines.extend(entity_lines)
+        if include_imports:
+            imports = self._import_context_cache
+            if imports:
+                lines.append(f"# Imports:\n{imports}")
         return "\n".join(lines)
+
+    def _select_enriched(
+        self,
+        result: RawExtractionResult,
+        start: int,
+        end: int,
+        scopes: list[str],
+        symbol: SymbolDTO | None,
+        context_symbols: list[SymbolDTO],
+    ) -> tuple[str, int]:
+        key = (
+            start,
+            end,
+            symbol.symbol_id if symbol else "",
+            tuple(item.symbol_id for item in context_symbols),
+        )
+        cached = self._enriched_cache.get(key)
+        if cached is not None:
+            return cached
+        content = result.source_bytes[start:end].decode("utf-8", errors="replace")
+        header = self._header(result, scopes, symbol, context_symbols)
+        enriched = f"{header}\n\n{content}"
+        enriched_tokens = self.tokenizer.count(enriched)
+        if enriched_tokens <= self.max_chunk_tokens:
+            value = (enriched, enriched_tokens)
+            self._enriched_cache[key] = value
+            return value
+
+        # Preserve source and identity first. Drop imports before any richer
+        # entity context; imports are useful, but they are the least specific
+        # part of a function/method embedding header.
+        reduced = self._header(
+            result, scopes, symbol, context_symbols, include_imports=False
+        )
+        reduced_enriched = f"{reduced}\n\n{content}"
+        reduced_tokens = self.tokenizer.count(reduced_enriched)
+        if reduced_tokens <= self.max_chunk_tokens:
+            value = (reduced_enriched, reduced_tokens)
+            self._enriched_cache[key] = value
+            return value
+
+        if symbol and symbol.docstring:
+            shortened = replace(symbol, docstring=None)
+            reduced = self._header(
+                result, scopes, shortened, context_symbols, include_imports=False
+            )
+            reduced_enriched = f"{reduced}\n\n{content}"
+            reduced_tokens = self.tokenizer.count(reduced_enriched)
+            if reduced_tokens <= self.max_chunk_tokens:
+                value = (reduced_enriched, reduced_tokens)
+                self._enriched_cache[key] = value
+                return value
+        value = (enriched, enriched_tokens)
+        self._enriched_cache[key] = value
+        return value
+
+    @staticmethod
+    def _compact(value: str, limit: int) -> str:
+        return " ".join(value.split())[:limit]
+
+    @staticmethod
+    def _module_name(file_path: str) -> str:
+        path = file_path.replace("\\", "/")
+        if "/" not in path:
+            return path.rsplit(".", 1)[0]
+        return path.rsplit("/", 1)[0].replace("/", ".")
+
+    @staticmethod
+    def _import_context(result: RawExtractionResult) -> str:
+        values: list[str] = []
+        for item in result.imports:
+            statement = item.raw_statement.strip() if item.raw_statement else ""
+            if statement and statement not in values:
+                values.append(statement)
+        return "\n".join(f"# - {value}" for value in values)
+
+    def _context_symbols(
+        self,
+        result: RawExtractionResult,
+        symbol_ids: list[str],
+        symbol: SymbolDTO | None,
+    ) -> list[SymbolDTO]:
+        if symbol is not None:
+            return [symbol]
+        return [self._symbol_by_id[item] for item in symbol_ids if item in self._symbol_by_id]
 
     @staticmethod
     def _chunk_type(symbol: SymbolDTO) -> ChunkType:
@@ -418,24 +544,42 @@ class CastChunker:
             else ChunkType.FUNCTION
         )
 
-    @staticmethod
     def _scope_chain(
+        self,
         symbol: SymbolDTO | None, result: RawExtractionResult
     ) -> list[str]:
         if symbol is None:
             return []
-        by_id = {item.symbol_id: item for item in result.symbols}
+        cached = self._scope_cache.get(symbol.symbol_id)
+        if cached is not None:
+            return cached
         chain: list[str] = []
         current = symbol
         while current:
             chain.append(current.name)
             current = (
-                by_id.get(current.parent_symbol_id)
+                self._symbol_by_id.get(current.parent_symbol_id)
                 if current.parent_symbol_id
                 else None
             )
-        return list(reversed(chain))
+        value = list(reversed(chain))
+        self._scope_cache[symbol.symbol_id] = value
+        return value
 
     @staticmethod
-    def _line(source: bytes, byte_offset: int) -> int:
-        return source[:byte_offset].count(b"\n") + 1
+    def _compute_newline_offsets(source: bytes) -> list[int]:
+        # bytes.find is a C-level scan; this is far faster than a Python
+        # per-byte loop (e.g. `enumerate(source)`) for large files.
+        offsets: list[int] = []
+        start = source.find(b"\n")
+        while start != -1:
+            offsets.append(start)
+            start = source.find(b"\n", start + 1)
+        return offsets
+
+    def _line(self, source: bytes, byte_offset: int) -> int:
+        # Previously `source[:byte_offset].count(b"\n")`: an O(file size)
+        # rescan from the start of the file on every call, called twice per
+        # chunk. With newline positions precomputed once per file, this is
+        # an O(log n) binary search instead.
+        return bisect.bisect_left(self._newline_offsets, byte_offset) + 1
