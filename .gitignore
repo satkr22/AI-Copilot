@@ -17,9 +17,9 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+res.txt
 zz.py
 xx.py
-backend/res.txt
 dist
 dist-ssr
 *.local
