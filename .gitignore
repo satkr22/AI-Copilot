@@ -26,6 +26,8 @@ dist-ssr
 docs/NEXT_DAY_PLAN.md
 docs/FUTURE_DECISIONS.md
 docs/IDEAS.md
+docs/indexing_pipeline_design.md
+docs/Context_Aware_Code_RAG_Chunking_Standards.md
 docs/images
 # docs/indexing_pipeline_design.md
 
